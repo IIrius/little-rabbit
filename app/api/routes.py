@@ -9,6 +9,8 @@ from sqlalchemy.orm import Session
 
 from app import models, schemas
 from app.database import get_session
+from app.security.audit import record_audit_event
+from app.security.encryption import get_data_encryptor
 
 router = APIRouter()
 
@@ -24,8 +26,18 @@ def health() -> dict[str, str]:
 def list_items(session: Session = Depends(get_session)) -> List[schemas.ItemRead]:
     """Return all items."""
 
+    encryptor = get_data_encryptor()
     result = session.execute(select(models.Item).order_by(models.Item.id))
-    return list(result.scalars().all())
+    items = [
+        schemas.ItemRead(
+            id=item.id,
+            name=item.name,
+            description=encryptor.decrypt(item.description),
+        )
+        for item in result.scalars().all()
+    ]
+    record_audit_event("items.list", count=len(items))
+    return items
 
 
 @router.post(
@@ -39,6 +51,8 @@ def create_item(
 ) -> schemas.ItemRead:
     """Create a new item."""
 
+    encryptor = get_data_encryptor()
+
     existing = session.execute(
         select(models.Item).where(models.Item.name == payload.name)
     ).scalar_one_or_none()
@@ -47,8 +61,17 @@ def create_item(
             status_code=status.HTTP_409_CONFLICT, detail="Item already exists"
         )
 
-    item = models.Item(name=payload.name, description=payload.description)
+    item = models.Item(
+        name=payload.name,
+        description=encryptor.encrypt(payload.description),
+    )
     session.add(item)
     session.commit()
     session.refresh(item)
-    return item
+
+    record_audit_event("items.create", item_id=item.id, name=item.name)
+    return schemas.ItemRead(
+        id=item.id,
+        name=item.name,
+        description=encryptor.decrypt(item.description),
+    )

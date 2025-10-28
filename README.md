@@ -92,6 +92,18 @@ A minimal FastAPI application demonstrating containerized deployment workflows, 
 - GitHub Actions pipeline covering build, test, and deploy stages
 - Pre-generated OpenAPI specification (`docs/openapi.json`)
 
+## Security hardening
+
+- Automatic HTTPS redirection via FastAPI middleware
+- Vault-integrated secret retrieval with environment fallbacks for local use
+- Fixed-window rate limiting with quota response headers and audit trails
+- Structured JSON audit logs persisted to a rotating file handler
+- Input sanitisation applied to payloads and query parameters using `bleach`
+- Transparent Fernet encryption of persisted item descriptions
+
+Refer to [`docs/SECURITY.md`](docs/SECURITY.md) for detailed threat modelling and
+configuration guidance for these controls.
+
 ## Prerequisites
 
 - Python 3.11+

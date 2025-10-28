@@ -16,6 +16,16 @@ class Settings(BaseSettings):
         "postgresql+psycopg2://app:app@localhost:5432/app", env="DATABASE_URL"
     )
     docs_output_path: str = Field("docs/openapi.json", env="DOCS_OUTPUT_PATH")
+    rate_limit_max_requests: int = Field(100, env="RATE_LIMIT_MAX_REQUESTS")
+    rate_limit_window_seconds: int = Field(60, env="RATE_LIMIT_WINDOW_SECONDS")
+    audit_log_path: str = Field("logs/audit.log", env="AUDIT_LOG_PATH")
+    vault_addr: str | None = Field(None, env="VAULT_ADDR")
+    vault_token: str | None = Field(None, env="VAULT_TOKEN")
+    vault_verify: bool = Field(True, env="VAULT_VERIFY")
+    vault_secret_path: str = Field("secret/data/app", env="VAULT_SECRET_PATH")
+    vault_encryption_key_field: str = Field(
+        "ENCRYPTION_KEY", env="VAULT_ENCRYPTION_KEY_FIELD"
+    )
 
     class Config:
         env_file_encoding = "utf-8"
