@@ -1,0 +1,27 @@
+# Python
+__pycache__/
+*.py[cod]
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+
+# Environments
+.env
+.env.*
+!.env.example
+!.env.prod
+.venv/
+
+# Alembic
+alembic/*.pyc
+alembic/__pycache__/
+
+# Docker
+*.log
+
+# VSCode
+.vscode/
+.idea/
+.DS_Store
