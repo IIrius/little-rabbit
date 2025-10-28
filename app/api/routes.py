@@ -4,6 +4,8 @@ from __future__ import annotations
 from typing import List
 
 from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi.responses import Response
+from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
@@ -20,6 +22,14 @@ def health() -> dict[str, str]:
     """Health check endpoint."""
 
     return {"status": "ok"}
+
+
+@router.get("/metrics", tags=["observability"])
+def metrics() -> Response:
+    """Expose Prometheus metrics for scraping."""
+
+    data = generate_latest()
+    return Response(content=data, media_type=CONTENT_TYPE_LATEST)
 
 
 @router.get("/items", response_model=List[schemas.ItemRead], tags=["items"])

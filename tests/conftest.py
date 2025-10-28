@@ -55,6 +55,16 @@ def setup_database() -> Generator[None, None, None]:
     Base.metadata.create_all(bind=engine)
     app.dependency_overrides[get_session] = _override_get_session
 
+    pipeline_tasks_module = None
+    original_session_factory = None
+    try:
+        from app.pipeline import tasks as pipeline_tasks_module  # type: ignore
+    except ImportError:
+        pipeline_tasks_module = None
+    else:
+        original_session_factory = pipeline_tasks_module.SessionLocal
+        pipeline_tasks_module.SessionLocal = TestingSessionLocal
+
     yield
 
     session = TestingSessionLocal()
@@ -64,6 +74,8 @@ def setup_database() -> Generator[None, None, None]:
     if rate_limiter is not None:
         rate_limiter.reset()
     app.dependency_overrides.pop(get_session, None)
+    if pipeline_tasks_module is not None and original_session_factory is not None:
+        pipeline_tasks_module.SessionLocal = original_session_factory
 
 
 @pytest.fixture()
