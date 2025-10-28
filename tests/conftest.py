@@ -3,10 +3,17 @@ from __future__ import annotations
 
 from collections.abc import Generator
 from pathlib import Path
+import os
 import sys
 
 import pytest
 from fastapi.testclient import TestClient
+
+os.environ.setdefault(
+    "ENCRYPTION_KEY", "BYPHtIuWGHNirMRHkRkNvztNFVQVw1Gc7YCOUMIqFZs="
+)
+os.environ.setdefault("RATE_LIMIT_MAX_REQUESTS", "100")
+os.environ.setdefault("RATE_LIMIT_WINDOW_SECONDS", "60")
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 if str(PROJECT_ROOT) not in sys.path:
@@ -53,9 +60,21 @@ def setup_database() -> Generator[None, None, None]:
     session = TestingSessionLocal()
     session.close()
     Base.metadata.drop_all(bind=engine)
+    rate_limiter = getattr(app.state, "rate_limiter", None)
+    if rate_limiter is not None:
+        rate_limiter.reset()
     app.dependency_overrides.pop(get_session, None)
 
 
 @pytest.fixture()
 def client() -> TestClient:
-    return TestClient(app)
+    return TestClient(app, base_url="https://testserver")
+
+
+@pytest.fixture()
+def db_session() -> Generator:
+    session = TestingSessionLocal()
+    try:
+        yield session
+    finally:
+        session.close()
