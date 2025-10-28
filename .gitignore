@@ -1,3 +1,33 @@
+chore/init-monorepo-skeleton-fastapi-backend-poetry-precommit
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+.env
+.env.*
+.venv
+.venv*/
+
+# Distribution / packaging
+build/
+dist/
+*.egg-info/
+
+# Tool caches
+.mypy_cache/
+.pytest_cache/
+.ruff_cache/
+.coverage
+coverage/
+htmlcov/
+
+# Editor directories and files
+.idea/
+.vscode/
+*.swp
+=======
 # Python
 __pycache__/
 *.py[cod]
@@ -24,4 +54,5 @@ alembic/__pycache__/
 # VSCode
 .vscode/
 .idea/
+main
 .DS_Store
