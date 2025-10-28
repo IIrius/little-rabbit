@@ -1,0 +1,38 @@
+name: Lint
+
+on:
+  push:
+    branches:
+      - "**"
+  pull_request:
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.11"
+
+      - name: Install Poetry
+        run: pip install poetry
+
+      - name: Install backend dependencies
+        working-directory: backend
+        run: poetry install
+
+      - name: Run Ruff
+        working-directory: backend
+        run: poetry run ruff check app
+
+      - name: Run Black (check)
+        working-directory: backend
+        run: poetry run black --check app
+
+      - name: Run mypy
+        working-directory: backend
+        run: poetry run mypy app
