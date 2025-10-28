@@ -31,10 +31,10 @@ rate_limiter = RateLimiter(
     window_seconds=settings.rate_limit_window_seconds,
 )
 
-app.add_middleware(HTTPSRedirectMiddleware)
-app.add_middleware(SanitizationMiddleware)
-app.add_middleware(RateLimitMiddleware, rate_limiter=rate_limiter)
 app.add_middleware(AuditMiddleware, audit_logger=audit_logger)
+app.add_middleware(HTTPSRedirectMiddleware)
+app.add_middleware(RateLimitMiddleware, rate_limiter=rate_limiter)
+app.add_middleware(SanitizationMiddleware)
 
 app.state.audit_logger = audit_logger
 app.state.rate_limiter = rate_limiter
