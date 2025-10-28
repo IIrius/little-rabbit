@@ -26,6 +26,9 @@ class Settings(BaseSettings):
     vault_encryption_key_field: str = Field(
         "ENCRYPTION_KEY", env="VAULT_ENCRYPTION_KEY_FIELD"
     )
+    celery_broker_url: str = Field("memory://", env="CELERY_BROKER_URL")
+    celery_result_backend: str = Field("rpc://", env="CELERY_RESULT_BACKEND")
+    pipeline_config_json: str | None = Field(None, env="WORKSPACE_PIPELINES_JSON")
 
     class Config:
         env_file_encoding = "utf-8"

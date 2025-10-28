@@ -6,6 +6,7 @@ from fastapi.middleware.httpsredirect import HTTPSRedirectMiddleware
 
 from app.api.routes import router
 from app.config import get_settings
+from app.observability.logging import setup_structured_logging
 from app.security.audit import configure_audit_logger
 from app.security.encryption import get_data_encryptor
 from app.security.middleware import (
@@ -16,6 +17,7 @@ from app.security.middleware import (
 from app.security.rate_limit import RateLimiter
 from app.security.vault import get_vault_client
 
+setup_structured_logging()
 settings = get_settings()
 
 app = FastAPI(
