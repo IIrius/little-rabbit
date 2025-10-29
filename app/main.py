@@ -57,4 +57,8 @@ def health_check() -> dict[str, str]:
 def read_root() -> dict[str, str]:
     """Return basic application metadata."""
 
-    return {"application": settings.app_name, "environment": settings.app_env}
+    return {
+        "message": f"Welcome to {settings.app_name}!",
+        "application": settings.app_name,
+        "environment": settings.app_env,
+    }
