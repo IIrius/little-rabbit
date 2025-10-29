@@ -4,7 +4,7 @@ from __future__ import annotations
 from datetime import datetime
 from typing import List, Optional
 
-from pydantic import AnyUrl, BaseModel, Field, HttpUrl, constr, validator
+from pydantic import AnyUrl, BaseModel, EmailStr, Field, HttpUrl, constr, validator
 
 from app.models import PipelineRunStatus, ProxyProtocol, SourceKind
 from app.security.sanitization import sanitize_text
@@ -24,6 +24,168 @@ class ItemRead(ItemCreate):
 
     class Config:
         orm_mode = True
+
+
+class WorkspaceMembership(BaseModel):
+    workspace: str
+    role: str
+
+    _sanitize_workspace = validator("workspace", pre=True, allow_reuse=True)(sanitize_text)
+    _sanitize_role = validator("role", pre=True, allow_reuse=True)(sanitize_text)
+
+    class Config:
+        orm_mode = True
+
+
+class UserPublic(BaseModel):
+    id: int
+    email: EmailStr
+    full_name: Optional[str] = None
+    role: str
+    default_workspace: Optional[str] = None
+    workspaces: List[WorkspaceMembership] = Field(default_factory=list)
+
+    _sanitize_full_name = validator("full_name", pre=True, allow_reuse=True)(sanitize_text)
+    _sanitize_role = validator("role", pre=True, allow_reuse=True)(sanitize_text)
+    _sanitize_default_workspace = validator(
+        "default_workspace", pre=True, allow_reuse=True
+    )(sanitize_text)
+
+    class Config:
+        orm_mode = True
+
+
+class AuthTokenPair(BaseModel):
+    access_token: str
+    access_token_expires_at: datetime
+    refresh_token: str
+    refresh_token_expires_at: datetime
+    token_type: str = "bearer"
+    user: UserPublic
+
+
+class AuthRegisterRequest(BaseModel):
+    email: EmailStr
+    password: constr(min_length=8, max_length=128)
+    full_name: Optional[constr(strip_whitespace=True, max_length=255)] = None
+    role: str = "operator"
+    workspaces: List[str] = Field(default_factory=lambda: ["dev"])
+
+    @validator("email", pre=True)
+    def _normalize_email(cls, value: str | EmailStr) -> str:
+        sanitized = sanitize_text(str(value) if value is not None else None)
+        if not sanitized:
+            raise ValueError("email cannot be blank")
+        return sanitized.lower()
+
+    @validator("password", pre=True)
+    def _normalize_password(cls, value: str) -> str:
+        if not isinstance(value, str):
+            raise ValueError("invalid password")
+        stripped = value.strip()
+        if len(stripped) < 8:
+            raise ValueError("password must be at least 8 characters long")
+        return stripped
+
+    @validator("full_name", pre=True)
+    def _sanitize_full_name(cls, value: Optional[str]) -> Optional[str]:
+        return sanitize_text(value)
+
+    @validator("role", pre=True)
+    def _sanitize_role(cls, value: str) -> str:
+        sanitized = sanitize_text(value)
+        if not sanitized:
+            raise ValueError("role cannot be blank")
+        return sanitized.lower()
+
+    @validator("workspaces", pre=True)
+    def _default_workspaces(cls, value: Optional[List[str]]) -> List[str]:
+        if value is None:
+            return ["dev"]
+        return value
+
+    @validator("workspaces")
+    def _sanitize_workspaces(cls, value: List[str]) -> List[str]:
+        cleaned: list[str] = []
+        for entry in value:
+            sanitized = sanitize_text(entry)
+            if not sanitized:
+                raise ValueError("workspace cannot be blank")
+            normalized = sanitized.lower()
+            if normalized not in cleaned:
+                cleaned.append(normalized)
+        if not cleaned:
+            raise ValueError("at least one workspace must be provided")
+        return cleaned
+
+
+class AuthLoginRequest(BaseModel):
+    email: EmailStr
+    password: constr(min_length=8, max_length=128)
+
+    @validator("email", pre=True)
+    def _normalize_email(cls, value: str | EmailStr) -> str:
+        sanitized = sanitize_text(str(value) if value is not None else None)
+        if not sanitized:
+            raise ValueError("email cannot be blank")
+        return sanitized.lower()
+
+    @validator("password", pre=True)
+    def _sanitize_password(cls, value: str) -> str:
+        if not isinstance(value, str):
+            raise ValueError("invalid password")
+        return value.strip()
+
+
+class AuthRefreshRequest(BaseModel):
+    refresh_token: str
+
+    @validator("refresh_token", pre=True)
+    def _sanitize_refresh_token(cls, value: str) -> str:
+        sanitized = sanitize_text(value)
+        if not sanitized:
+            raise ValueError("refresh_token cannot be blank")
+        return sanitized
+
+
+class PasswordResetRequest(BaseModel):
+    email: EmailStr
+
+    @validator("email", pre=True)
+    def _normalize_reset_email(cls, value: str | EmailStr) -> str:
+        sanitized = sanitize_text(str(value) if value is not None else None)
+        if not sanitized:
+            raise ValueError("email cannot be blank")
+        return sanitized.lower()
+
+
+class PasswordResetConfirmation(BaseModel):
+    token: str
+    new_password: constr(min_length=8, max_length=128)
+
+    @validator("token", pre=True)
+    def _sanitize_token(cls, value: str) -> str:
+        sanitized = sanitize_text(value)
+        if not sanitized:
+            raise ValueError("token cannot be blank")
+        return sanitized
+
+    @validator("new_password", pre=True)
+    def _sanitize_new_password(cls, value: str) -> str:
+        if not isinstance(value, str):
+            raise ValueError("invalid password")
+        return value.strip()
+
+
+class WorkspaceSelectionRequest(BaseModel):
+    workspace: str
+
+    @validator("workspace", pre=True)
+    def _sanitize_workspace(cls, value: str) -> str:
+        sanitized = sanitize_text(value)
+        if not sanitized:
+            raise ValueError("workspace cannot be blank")
+        return sanitized.lower()
 
 
 class ModerationAIAnalysis(BaseModel):

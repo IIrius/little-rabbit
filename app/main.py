@@ -7,6 +7,7 @@ from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 
+from app.api.auth import router as auth_router
 from app.api.routes import router
 from app.config import get_settings
 from app.observability.logging import setup_structured_logging
@@ -51,6 +52,7 @@ app.state.rate_limiter = rate_limiter
 app.state.vault_client = get_vault_client()
 app.state.encryptor = get_data_encryptor()
 
+app.include_router(auth_router, prefix="/api")
 app.include_router(router, prefix="/api")
 
 
@@ -78,6 +80,19 @@ def moderation_console(request: Request) -> HTMLResponse:
 
     return templates.TemplateResponse(
         "moderation.html",
+        {
+            "request": request,
+            "app_name": settings.app_name,
+        },
+    )
+
+
+@app.get("/auth", response_class=HTMLResponse, tags=["auth"])
+def authentication_portal(request: Request) -> HTMLResponse:
+    """Serve the authentication and workspace selection interface."""
+
+    return templates.TemplateResponse(
+        "auth.html",
         {
             "request": request,
             "app_name": settings.app_name,
