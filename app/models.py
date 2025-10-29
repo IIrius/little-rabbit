@@ -2,12 +2,29 @@
 from __future__ import annotations
 
 from datetime import datetime
+feat/moderation-console-ui-backend-ws
+from enum import StrEnum
+from typing import Optional
+
+from sqlalchemy import (
+    DateTime,
+    Enum,
+    Float,
+    ForeignKey,
+    String,
+    Text,
+    UniqueConstraint,
+)
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.sql import func
+
 from enum import Enum
 from typing import Optional
 
 from sqlalchemy import Boolean, DateTime, Enum as SAEnum, String, Text, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy.sql import expression, func
+main
 
 from app.database import Base
 
@@ -41,6 +58,69 @@ class NewsArticle(Base):
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )
 
+
+feat/moderation-console-ui-backend-ws
+class ModerationStatus(StrEnum):
+    """Enumeration of moderation decisions."""
+
+    PENDING = "pending"
+    APPROVED = "approved"
+    REJECTED = "rejected"
+
+
+class ModerationRequest(Base):
+    """Content item queued for human moderation."""
+
+    __tablename__ = "moderation_requests"
+
+    id: Mapped[int] = mapped_column(primary_key=True, index=True)
+    workspace: Mapped[str] = mapped_column(String(64), nullable=False, index=True)
+    reference: Mapped[str] = mapped_column(String(128), nullable=False)
+    content_title: Mapped[str] = mapped_column(String(255), nullable=False)
+    content_excerpt: Mapped[Optional[str]] = mapped_column(Text(), nullable=True)
+    submitted_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+    status: Mapped[ModerationStatus] = mapped_column(
+        Enum(ModerationStatus),
+        default=ModerationStatus.PENDING,
+        nullable=False,
+        index=True,
+    )
+    ai_score: Mapped[float] = mapped_column(Float, nullable=False)
+    ai_summary: Mapped[str] = mapped_column(Text(), nullable=False)
+    ai_flags: Mapped[Optional[str]] = mapped_column(Text(), nullable=True)
+
+    decisions: Mapped[list["ModerationDecision"]] = relationship(
+        "ModerationDecision",
+        back_populates="request",
+        cascade="all, delete-orphan",
+        order_by="ModerationDecision.decided_at.desc()",
+    )
+
+
+class ModerationDecision(Base):
+    """Audit trail of moderation outcomes."""
+
+    __tablename__ = "moderation_decisions"
+
+    id: Mapped[int] = mapped_column(primary_key=True, index=True)
+    request_id: Mapped[int] = mapped_column(
+        ForeignKey("moderation_requests.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    decision: Mapped[ModerationStatus] = mapped_column(
+        Enum(ModerationStatus), nullable=False
+    )
+    decided_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+    decided_by: Mapped[Optional[str]] = mapped_column(String(120), nullable=True)
+    reason: Mapped[Optional[str]] = mapped_column(Text(), nullable=True)
+
+    request: Mapped[ModerationRequest] = relationship(
+        "ModerationRequest", back_populates="decisions"
 
 class SourceKind(str, Enum):
     RSS = "rss"
@@ -165,4 +245,5 @@ class PipelineRun(Base):
     )
     finished_at: Mapped[Optional[datetime]] = mapped_column(
         DateTime(timezone=True), nullable=True
+main
     )

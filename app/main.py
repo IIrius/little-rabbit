@@ -1,8 +1,12 @@
 """Application entry point."""
 from __future__ import annotations
 
-from fastapi import FastAPI
+from pathlib import Path
+
+from fastapi import FastAPI, Request
 from fastapi.middleware.httpsredirect import HTTPSRedirectMiddleware
+from fastapi.responses import HTMLResponse
+from fastapi.templating import Jinja2Templates
 
 from app.api.routes import router
 from app.config import get_settings
@@ -19,6 +23,10 @@ from app.security.vault import get_vault_client
 
 setup_structured_logging()
 settings = get_settings()
+
+templates = Jinja2Templates(
+    directory=str(Path(__file__).resolve().parent / "web" / "templates")
+)
 
 app = FastAPI(
     title=settings.app_name,
@@ -62,3 +70,16 @@ def read_root() -> dict[str, str]:
         "application": settings.app_name,
         "environment": settings.app_env,
     }
+
+
+@app.get("/moderation", response_class=HTMLResponse, tags=["moderation"])
+def moderation_console(request: Request) -> HTMLResponse:
+    """Serve the moderation console single-page interface."""
+
+    return templates.TemplateResponse(
+        "moderation.html",
+        {
+            "request": request,
+            "app_name": settings.app_name,
+        },
+    )
