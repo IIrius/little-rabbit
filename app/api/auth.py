@@ -18,6 +18,7 @@ from app.security.authentication import (
     find_refresh_token,
     get_current_user,
     hash_password,
+    normalize_utc,
     require_roles,
     rotate_refresh_token,
     validate_requested_workspaces,
@@ -154,7 +155,7 @@ def refresh_session(
             detail="Invalid refresh token",
         )
     now = datetime.now(timezone.utc)
-    if token_record.expires_at < now:
+    if normalize_utc(token_record.expires_at) < now:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Refresh token expired",
