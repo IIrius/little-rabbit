@@ -46,6 +46,13 @@ app.state.encryptor = get_data_encryptor()
 app.include_router(router, prefix="/api")
 
 
+@app.get("/health", tags=["health"])
+def health_check() -> dict[str, str]:
+    """Return service health status."""
+
+    return {"status": "ok"}
+
+
 @app.get("/", tags=["meta"])
 def read_root() -> dict[str, str]:
     """Return basic application metadata."""
