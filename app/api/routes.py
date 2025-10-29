@@ -4,14 +4,16 @@ from __future__ import annotations
 import asyncio
 import contextlib
 from datetime import datetime, timezone
-from typing import Dict, List
+from typing import Dict, Generator, List
 from uuid import uuid4
 
 from fastapi import (
     APIRouter,
     Depends,
+    FastAPI,
     HTTPException,
     Query,
+    Request,
     WebSocket,
     WebSocketDisconnect,
     status,
@@ -95,9 +97,53 @@ def _snapshot_payload(workspace: str, runs: List[models.PipelineRun]) -> dict[st
     }
 
 
-async def _execute_pipeline_run(run_id: int, workspace: str) -> None:
-    session = SessionLocal()
+@contextlib.contextmanager
+def _session_scope(app: FastAPI) -> Generator[Session, None, None]:
+    dependency = getattr(app, "dependency_overrides", {}).get(get_session)
+
+    if dependency is None:
+        session = SessionLocal()
+        try:
+            yield session
+        finally:
+            session.close()
+        return
+
+    resource = dependency()
+    session: Session | None = None
+
     try:
+        if hasattr(resource, "__enter__") and hasattr(resource, "__exit__"):
+            with resource as session_context:
+                yield session_context
+            return
+
+        if hasattr(resource, "__next__"):
+            session = next(resource)
+            try:
+                yield session
+            finally:
+                with contextlib.suppress(StopIteration):
+                    next(resource)
+            return
+
+        session = resource
+        try:
+            yield session
+        finally:
+            close = getattr(session, "close", None)
+            if callable(close):
+                close()
+    except Exception:
+        if session is not None:
+            close = getattr(session, "close", None)
+            if callable(close):
+                close()
+        raise
+
+
+async def _execute_pipeline_run(run_id: int, workspace: str, app: FastAPI) -> None:
+    with _session_scope(app) as session:
         run = session.get(models.PipelineRun, run_id)
         if run is None:
             return
@@ -126,8 +172,6 @@ async def _execute_pipeline_run(run_id: int, workspace: str) -> None:
         session.commit()
         session.refresh(run)
         await pipeline_status_broadcaster.publish(workspace, _serialize_run_event(run))
-    finally:
-        session.close()
 
 
 @router.get("/health", tags=["health"])
@@ -867,7 +911,9 @@ def list_pipeline_runs(
     tags=["workspaces", "pipeline"],
 )
 async def trigger_pipeline_run(
-    workspace: str, session: Session = Depends(get_session)
+    workspace: str,
+    request: Request,
+    session: Session = Depends(get_session),
 ) -> schemas.PipelineRunRead:
     run = models.PipelineRun(
         workspace=workspace,
@@ -884,7 +930,7 @@ async def trigger_pipeline_run(
         workspace=workspace,
         pipeline_run_id=run.id,
     )
-    asyncio.create_task(_execute_pipeline_run(run.id, workspace))
+    asyncio.create_task(_execute_pipeline_run(run.id, workspace, request.app))
     return schemas.PipelineRunRead.from_orm(run)
 
 
@@ -940,38 +986,37 @@ def workspace_dashboard(
 @router.websocket("/workspaces/{workspace}/pipeline/status")
 async def workspace_pipeline_status_stream(websocket: WebSocket, workspace: str) -> None:
     await websocket.accept()
-    session = SessionLocal()
     queue = await pipeline_status_broadcaster.subscribe(workspace)
 
     try:
-        runs = session.execute(
-            select(models.PipelineRun)
-            .where(models.PipelineRun.workspace == workspace)
-            .order_by(models.PipelineRun.created_at.desc())
-            .limit(20)
-        ).scalars().all()
-        await websocket.send_json(_snapshot_payload(workspace, runs))
+        with _session_scope(websocket.app) as session:
+            runs = session.execute(
+                select(models.PipelineRun)
+                .where(models.PipelineRun.workspace == workspace)
+                .order_by(models.PipelineRun.created_at.desc())
+                .limit(20)
+            ).scalars().all()
+            await websocket.send_json(_snapshot_payload(workspace, runs))
 
-        receiver = asyncio.create_task(websocket.receive_text())
-        try:
-            while True:
-                producer = asyncio.create_task(queue.get())
-                done, _ = await asyncio.wait(
-                    {receiver, producer}, return_when=asyncio.FIRST_COMPLETED
-                )
-                if receiver in done:
-                    producer.cancel()
-                    with contextlib.suppress(asyncio.CancelledError):
-                        await producer
-                    break
-                payload = producer.result()
-                await websocket.send_json(payload)
-        except WebSocketDisconnect:
-            pass
-        finally:
-            receiver.cancel()
-            with contextlib.suppress(Exception):
-                await receiver
+            receiver = asyncio.create_task(websocket.receive_text())
+            try:
+                while True:
+                    producer = asyncio.create_task(queue.get())
+                    done, _ = await asyncio.wait(
+                        {receiver, producer}, return_when=asyncio.FIRST_COMPLETED
+                    )
+                    if receiver in done:
+                        producer.cancel()
+                        with contextlib.suppress(asyncio.CancelledError):
+                            await producer
+                        break
+                    payload = producer.result()
+                    await websocket.send_json(payload)
+            except WebSocketDisconnect:
+                pass
+            finally:
+                receiver.cancel()
+                with contextlib.suppress(Exception):
+                    await receiver
     finally:
         await pipeline_status_broadcaster.unsubscribe(workspace, queue)
-        session.close()
