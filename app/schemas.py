@@ -58,10 +58,10 @@ class ModerationRequestRead(BaseModel):
     content_excerpt: Optional[str]
     ai_analysis: ModerationAIAnalysis
 
-    _sanitize_workspace = validator("workspace", pre=True)(sanitize_text)
-    _sanitize_reference = validator("reference", pre=True)(sanitize_text)
-    _sanitize_title = validator("content_title", pre=True)(sanitize_text)
-    _sanitize_excerpt = validator("content_excerpt", pre=True)(sanitize_text)
+    _sanitize_workspace = validator("workspace", pre=True, allow_reuse=True)(sanitize_text)
+    _sanitize_reference = validator("reference", pre=True, allow_reuse=True)(sanitize_text)
+    _sanitize_title = validator("content_title", pre=True, allow_reuse=True)(sanitize_text)
+    _sanitize_excerpt = validator("content_excerpt", pre=True, allow_reuse=True)(sanitize_text)
 
 class WorkspaceSourceBase(BaseModel):
     name: constr(strip_whitespace=True, min_length=1, max_length=120)
@@ -136,9 +136,9 @@ class ModerationDecisionRead(BaseModel):
     decided_by: Optional[str]
     reason: Optional[str]
 
-    _sanitize_decision = validator("decision", pre=True)(sanitize_text)
-    _sanitize_decided_by = validator("decided_by", pre=True)(sanitize_text)
-    _sanitize_reason = validator("reason", pre=True)(sanitize_text)
+    _sanitize_decision = validator("decision", pre=True, allow_reuse=True)(sanitize_text)
+    _sanitize_decided_by = validator("decided_by", pre=True, allow_reuse=True)(sanitize_text)
+    _sanitize_reason = validator("reason", pre=True, allow_reuse=True)(sanitize_text)
 
     class Config:
         orm_mode = True
