@@ -27,7 +27,7 @@ def test_pipeline_publishes_sample_news(db_session) -> None:
     assert article.summary
 
     metrics_blob = generate_latest()
-    assert b'pipeline_runs_total{workspace="dev",status="success"}' in metrics_blob
+    assert b'pipeline_runs_total{status="success",workspace="dev"}' in metrics_blob
     assert b'pipeline_published_articles_total{workspace="dev"}' in metrics_blob
 
     assert "dev" in DASHBOARD_REGISTRY
