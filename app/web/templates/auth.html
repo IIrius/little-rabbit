@@ -1,0 +1,873 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{{ app_name }} · Authentication</title>
+    <style>
+        :root {
+            color-scheme: light dark;
+            --bg: #020617;
+            --card: rgba(15, 23, 42, 0.85);
+            --panel: rgba(8, 47, 73, 0.7);
+            --accent: #38bdf8;
+            --accent-strong: #0ea5e9;
+            --text: #e2e8f0;
+            --muted: #94a3b8;
+            --danger: #f87171;
+            --success: #34d399;
+            --warning: #fbbf24;
+            font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            background: radial-gradient(circle at top left, rgba(8, 47, 73, 0.65), transparent 55%),
+                radial-gradient(circle at bottom right, rgba(14, 165, 233, 0.25), transparent 60%),
+                linear-gradient(160deg, rgba(2, 6, 23, 1), rgba(15, 23, 42, 0.98));
+            color: var(--text);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: clamp(1rem, 4vw, 2.5rem);
+            box-sizing: border-box;
+        }
+
+        .auth-app {
+            width: min(1100px, 100%);
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: clamp(1rem, 2.5vw, 2rem);
+            align-items: stretch;
+        }
+
+        .card {
+            background: var(--card);
+            border-radius: 24px;
+            padding: clamp(1.5rem, 3vw, 2.75rem);
+            box-shadow: 0 30px 80px rgba(15, 23, 42, 0.55);
+            backdrop-filter: blur(14px);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle at top right, rgba(56, 189, 248, 0.18), transparent 45%);
+            opacity: 0.65;
+            pointer-events: none;
+        }
+
+        header {
+            margin-bottom: clamp(1rem, 2vw, 1.5rem);
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: clamp(1.75rem, 3vw, 2.3rem);
+            letter-spacing: -0.03em;
+        }
+
+        header p {
+            margin: 0.4rem 0 0;
+            color: var(--muted);
+            font-size: 0.95rem;
+        }
+
+        .view-switcher {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 1.5rem;
+        }
+
+        .view-switcher button {
+            flex: 1;
+            padding: 0.65rem 1rem;
+            border: 1px solid transparent;
+            border-radius: 12px;
+            font-weight: 600;
+            background: rgba(148, 163, 184, 0.12);
+            color: var(--text);
+            cursor: pointer;
+            transition: background 0.18s ease, border 0.18s ease;
+        }
+
+        .view-switcher button.active {
+            border-color: rgba(56, 189, 248, 0.7);
+            background: rgba(56, 189, 248, 0.18);
+            color: #0f172a;
+        }
+
+        form {
+            display: none;
+            margin-top: 1.5rem;
+        }
+
+        form.active {
+            display: grid;
+            gap: 1rem;
+        }
+
+        .field {
+            display: flex;
+            flex-direction: column;
+            gap: 0.45rem;
+        }
+
+        label {
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+
+        input,
+        select,
+        textarea {
+            width: 100%;
+            padding: 0.75rem 0.9rem;
+            border-radius: 12px;
+            border: 1px solid rgba(148, 163, 184, 0.25);
+            background: rgba(15, 23, 42, 0.75);
+            color: var(--text);
+            font-size: 0.95rem;
+            transition: border 0.18s ease, box-shadow 0.18s ease;
+        }
+
+        input:focus,
+        select:focus,
+        textarea:focus {
+            outline: none;
+            border-color: rgba(56, 189, 248, 0.6);
+            box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.18);
+        }
+
+        .checkbox-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 0.5rem 1rem;
+        }
+
+        .checkbox {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.9rem;
+            padding: 0.5rem 0.75rem;
+            border-radius: 12px;
+            background: rgba(15, 23, 42, 0.55);
+            border: 1px solid rgba(148, 163, 184, 0.2);
+        }
+
+        .checkbox input {
+            width: auto;
+            accent-color: var(--accent);
+        }
+
+        button.submit {
+            border: none;
+            border-radius: 12px;
+            padding: 0.85rem 1.2rem;
+            font-weight: 600;
+            background: linear-gradient(135deg, var(--accent), var(--accent-strong));
+            color: #0f172a;
+            cursor: pointer;
+            transition: transform 0.15s ease, box-shadow 0.18s ease;
+        }
+
+        button.submit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 16px 30px rgba(14, 165, 233, 0.35);
+        }
+
+        .helper-text {
+            font-size: 0.85rem;
+            color: var(--muted);
+        }
+
+        .dashboard {
+            display: none;
+            position: relative;
+        }
+
+        .dashboard.active {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .user-summary {
+            display: grid;
+            gap: 0.5rem;
+        }
+
+        .user-summary h2 {
+            margin: 0;
+            font-size: clamp(1.4rem, 2.5vw, 1.8rem);
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            padding: 0.35rem 0.75rem;
+            border-radius: 999px;
+            background: rgba(56, 189, 248, 0.18);
+            color: var(--accent);
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+
+        .workspace-panel {
+            background: rgba(8, 47, 73, 0.35);
+            border-radius: 18px;
+            padding: 1.25rem;
+            display: grid;
+            gap: 1rem;
+        }
+
+        .workspace-panel header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .workspace-panel header h3 {
+            margin: 0;
+            font-size: 1.1rem;
+        }
+
+        .workspace-data {
+            display: grid;
+            gap: 0.75rem;
+        }
+
+        .stat-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 0.75rem;
+        }
+
+        .stat {
+            background: rgba(15, 23, 42, 0.6);
+            border-radius: 14px;
+            padding: 0.75rem 1rem;
+            border: 1px solid rgba(148, 163, 184, 0.2);
+        }
+
+        .stat span {
+            display: block;
+            font-size: 0.8rem;
+            color: var(--muted);
+        }
+
+        .stat strong {
+            display: block;
+            font-size: 1.4rem;
+            margin-top: 0.25rem;
+        }
+
+        .panel-group {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 1rem;
+        }
+
+        .panel {
+            background: rgba(15, 23, 42, 0.6);
+            border-radius: 18px;
+            padding: 1rem 1.25rem;
+            border: 1px solid rgba(148, 163, 184, 0.18);
+            display: grid;
+            gap: 0.75rem;
+        }
+
+        .panel h4 {
+            margin: 0;
+            font-size: 1rem;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .toast {
+            position: fixed;
+            right: clamp(1rem, 3vw, 2rem);
+            bottom: clamp(1rem, 3vw, 2rem);
+            padding: 0.85rem 1.2rem;
+            background: rgba(15, 23, 42, 0.95);
+            border-radius: 12px;
+            border: 1px solid rgba(148, 163, 184, 0.25);
+            color: var(--text);
+            min-width: 220px;
+            max-width: 320px;
+            box-shadow: 0 18px 40px rgba(8, 15, 35, 0.45);
+            opacity: 0;
+            pointer-events: none;
+            transform: translateY(20px);
+            transition: opacity 0.2s ease, transform 0.2s ease;
+        }
+
+        .toast.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .toast.success {
+            border-color: rgba(52, 211, 153, 0.4);
+        }
+
+        .toast.error {
+            border-color: rgba(248, 113, 113, 0.4);
+        }
+
+        @media (max-width: 768px) {
+            body {
+                align-items: flex-start;
+                padding-top: 3rem;
+            }
+
+            .auth-app {
+                grid-template-columns: 1fr;
+            }
+
+            .panel-group {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <main class="auth-app">
+        <section class="card">
+            <header>
+                <h1>Access your workspace</h1>
+                <p>Authenticate to manage data pipelines, sources, and moderation workflows.</p>
+                <div class="view-switcher">
+                    <button type="button" data-view="login" class="active">Sign in</button>
+                    <button type="button" data-view="register">Register</button>
+                    <button type="button" data-view="reset">Reset password</button>
+                </div>
+            </header>
+
+            <form id="login-form" class="active">
+                <div class="field">
+                    <label for="login-email">Email</label>
+                    <input id="login-email" name="email" type="email" placeholder="you@example.com" autocomplete="email" required />
+                </div>
+                <div class="field">
+                    <label for="login-password">Password</label>
+                    <input id="login-password" name="password" type="password" placeholder="••••••••" autocomplete="current-password" required />
+                </div>
+                <button class="submit" type="submit">Sign in</button>
+            </form>
+
+            <form id="register-form">
+                <div class="field">
+                    <label for="register-email">Email</label>
+                    <input id="register-email" name="email" type="email" placeholder="admin@example.com" autocomplete="email" required />
+                </div>
+                <div class="field">
+                    <label for="register-name">Full name</label>
+                    <input id="register-name" name="full_name" type="text" placeholder="Alex Operator" autocomplete="name" />
+                </div>
+                <div class="field">
+                    <label for="register-password">Password</label>
+                    <input id="register-password" name="password" type="password" placeholder="secure phrase" autocomplete="new-password" minlength="8" required />
+                    <span class="helper-text">Minimum 8 characters, avoid common passwords.</span>
+                </div>
+                <div class="field">
+                    <label for="register-role">Role</label>
+                    <select id="register-role" name="role">
+                        <option value="operator">Operator</option>
+                        <option value="admin">Admin</option>
+                        <option value="viewer">Viewer</option>
+                    </select>
+                </div>
+                <div class="field">
+                    <label>Workspaces</label>
+                    <div class="checkbox-grid" id="register-workspaces">
+                    </div>
+                    <span class="helper-text">Select one or more workspaces to access after registration.</span>
+                </div>
+                <button class="submit" type="submit">Create account</button>
+            </form>
+
+            <form id="reset-form">
+                <div class="field">
+                    <label for="reset-email">Account email</label>
+                    <input id="reset-email" name="email" type="email" placeholder="you@example.com" required />
+                </div>
+                <button class="submit" type="submit">Request reset token</button>
+                <div class="field">
+                    <label for="reset-token">Enter token</label>
+                    <textarea id="reset-token" rows="2" placeholder="Paste reset token"></textarea>
+                </div>
+                <div class="field">
+                    <label for="reset-password">Set new password</label>
+                    <input id="reset-password" type="password" placeholder="new secure password" minlength="8" />
+                </div>
+                <button class="submit" type="button" id="reset-confirm">Confirm reset</button>
+                <span class="helper-text">Reset tokens are for demo purposes and shown directly after requesting.</span>
+            </form>
+        </section>
+
+        <section class="card dashboard" id="dashboard">
+            <div class="user-summary">
+                <h2 id="user-greeting">Welcome back</h2>
+                <span class="badge" id="user-role"></span>
+                <p class="helper-text" id="workspace-helper">Select a workspace to load contextual data.</p>
+            </div>
+
+            <div class="workspace-panel">
+                <header>
+                    <h3>Workspace selection</h3>
+                    <button type="button" class="submit" id="refresh-workspace" style="padding:0.6rem 1rem;">Refresh snapshot</button>
+                </header>
+                <div class="workspace-data">
+                    <div class="field">
+                        <label for="workspace-select">Active workspace</label>
+                        <select id="workspace-select"></select>
+                    </div>
+                    <div class="stat-grid" id="workspace-stats"></div>
+                    <div id="workspace-status" class="helper-text"></div>
+                </div>
+            </div>
+
+            <div class="panel-group">
+                <article class="panel" id="activity-panel">
+                    <h4>Recent pipeline activity</h4>
+                    <div id="pipeline-activity" class="helper-text">Pipeline metrics will appear after selecting a workspace.</div>
+                </article>
+                <article class="panel hidden" id="admin-panel">
+                    <h4>Admin console</h4>
+                    <p class="helper-text">Admin-only endpoints verify elevated permissions.</p>
+                    <button type="button" class="submit" id="validate-admin" style="padding:0.6rem 1rem;">Validate admin access</button>
+                    <div id="admin-status" class="helper-text"></div>
+                </article>
+            </div>
+        </section>
+    </main>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+        const state = {
+            session: null,
+            user: null,
+            refreshHandle: null,
+            currentWorkspace: null,
+        };
+
+        const apiBase = "/api";
+
+        function showToast(message, type = "info") {
+            const toast = document.getElementById("toast");
+            toast.textContent = message;
+            toast.className = `toast visible ${type}`;
+            clearTimeout(toast._timer);
+            toast._timer = setTimeout(() => {
+                toast.classList.remove("visible");
+            }, 3500);
+        }
+
+        function switchView(target) {
+            document.querySelectorAll(".view-switcher button").forEach((btn) => {
+                btn.classList.toggle("active", btn.dataset.view === target);
+            });
+            document.querySelectorAll("section form").forEach((form) => {
+                form.classList.toggle("active", form.id.startsWith(target));
+            });
+        }
+
+        document.querySelectorAll(".view-switcher button").forEach((button) => {
+            button.addEventListener("click", () => switchView(button.dataset.view));
+        });
+
+        function serializeForm(form) {
+            const data = new FormData(form);
+            return Object.fromEntries(data.entries());
+        }
+
+        function persistSession() {
+            if (!state.session) {
+                sessionStorage.removeItem("authSession");
+                return;
+            }
+            sessionStorage.setItem(
+                "authSession",
+                JSON.stringify({
+                    ...state.session,
+                    access_token_expires_at: state.session.access_token_expires_at,
+                    refresh_token_expires_at: state.session.refresh_token_expires_at,
+                })
+            );
+        }
+
+        function clearSession(notify = true) {
+            state.session = null;
+            state.user = null;
+            state.currentWorkspace = null;
+            if (state.refreshHandle) {
+                clearTimeout(state.refreshHandle);
+                state.refreshHandle = null;
+            }
+            document.getElementById("dashboard").classList.remove("active");
+            sessionStorage.removeItem("authSession");
+            switchView("login");
+            if (notify) {
+                showToast("Session ended. Sign in again.", "warning");
+            }
+        }
+
+        async function authenticate(endpoint, payload) {
+            const response = await fetch(`${apiBase}${endpoint}`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload),
+            });
+            const body = await response.json().catch(() => ({}));
+            if (!response.ok) {
+                throw new Error(body.detail || body.message || "Failed to authenticate");
+            }
+            applySession(body);
+        }
+
+        function applySession(body) {
+            state.user = body.user;
+            state.session = {
+                access_token: body.access_token,
+                refresh_token: body.refresh_token,
+                access_token_expires_at: body.access_token_expires_at,
+                refresh_token_expires_at: body.refresh_token_expires_at,
+            };
+            persistSession();
+            scheduleRefresh();
+            renderDashboard();
+            showToast(`Hello ${state.user.full_name || state.user.email}`, "success");
+        }
+
+        function scheduleRefresh() {
+            if (!state.session) return;
+            if (state.refreshHandle) {
+                clearTimeout(state.refreshHandle);
+            }
+            const expires = new Date(state.session.access_token_expires_at).getTime();
+            const now = Date.now();
+            const refreshIn = Math.max(30_000, expires - now - 60_000);
+            state.refreshHandle = setTimeout(refreshSession, refreshIn);
+        }
+
+        async function refreshSession() {
+            if (!state.session) return;
+            try {
+                const response = await fetch(`${apiBase}/auth/refresh`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ refresh_token: state.session.refresh_token }),
+                });
+                const body = await response.json().catch(() => ({}));
+                if (!response.ok) {
+                    throw new Error(body.detail || "Refresh failed");
+                }
+                applySession(body);
+                showToast("Session refreshed", "success");
+            } catch (error) {
+                clearSession();
+            }
+        }
+
+        async function fetchWithAuth(path, options = {}, attempt = 0) {
+            if (!state.session) throw new Error("Not authenticated");
+            const headers = Object.assign({}, options.headers || {}, {
+                Authorization: `Bearer ${state.session.access_token}`,
+            });
+            const response = await fetch(`${apiBase}${path}`, { ...options, headers });
+            if (response.status === 401 && attempt === 0) {
+                await refreshSession();
+                return fetchWithAuth(path, options, attempt + 1);
+            }
+            return response;
+        }
+
+        async function fetchProfile() {
+            const response = await fetchWithAuth("/auth/me");
+            const body = await response.json();
+            state.user = body;
+            persistSession();
+            renderDashboard();
+        }
+
+        async function refreshWorkspaces() {
+            const response = await fetchWithAuth("/auth/workspaces");
+            const body = await response.json();
+            if (!state.user) return;
+            if (Array.isArray(body.workspaces)) {
+                state.user.workspaces = body.workspaces;
+            }
+            renderWorkspaceOptions();
+        }
+
+        function renderWorkspaceOptions() {
+            const select = document.getElementById("workspace-select");
+            select.innerHTML = "";
+            const helper = document.getElementById("workspace-helper");
+            if (!state.user || !Array.isArray(state.user.workspaces) || state.user.workspaces.length === 0) {
+                state.currentWorkspace = null;
+                helper.textContent = "Select a workspace to load contextual data.";
+                return;
+            }
+            state.user.workspaces.forEach((workspace) => {
+                const option = document.createElement("option");
+                option.value = workspace.workspace;
+                option.textContent = workspace.workspace.toUpperCase();
+                select.appendChild(option);
+            });
+            const defaultWs = state.user.default_workspace || state.user.workspaces[0].workspace;
+            if (defaultWs) {
+                select.value = defaultWs;
+                state.currentWorkspace = defaultWs;
+                helper.textContent = `Currently viewing workspace “${defaultWs.toUpperCase()}”`;
+            } else {
+                state.currentWorkspace = null;
+                helper.textContent = "Select a workspace to load contextual data.";
+            }
+        }
+
+        async function loadWorkspaceSnapshot(workspace) {
+            if (!workspace) return;
+            try {
+                const response = await fetchWithAuth(`/workspaces/${workspace}/dashboard`);
+                if (!response.ok) {
+                    throw new Error("Unable to load dashboard snapshot");
+                }
+                const data = await response.json();
+                renderWorkspaceSnapshot(data);
+            } catch (error) {
+                document.getElementById("workspace-status").textContent = error.message;
+                document.getElementById("workspace-stats").innerHTML = "";
+                document.getElementById("pipeline-activity").textContent = "";
+            }
+        }
+
+        function renderWorkspaceSnapshot(snapshot) {
+            const stats = document.getElementById("workspace-stats");
+            stats.innerHTML = "";
+            if (!snapshot || !snapshot.counts) {
+                document.getElementById("workspace-status").textContent = "No data available for this workspace.";
+                return;
+            }
+            const entries = [
+                { label: "Sources", value: snapshot.counts.sources },
+                { label: "Proxies", value: snapshot.counts.proxies },
+                { label: "Telegram", value: snapshot.counts.telegram_channels },
+                { label: "Pipeline runs", value: snapshot.counts.pipeline_runs },
+            ];
+            entries.forEach((item) => {
+                const stat = document.createElement("div");
+                stat.className = "stat";
+                stat.innerHTML = `<span>${item.label}</span><strong>${item.value}</strong>`;
+                stats.appendChild(stat);
+            });
+            document.getElementById("workspace-status").textContent = `Workspace “${snapshot.workspace.toUpperCase()}” loaded at ${new Date().toLocaleTimeString()}`;
+            if (snapshot.pipeline_runs?.length) {
+                const latest = snapshot.pipeline_runs[0];
+                document.getElementById("pipeline-activity").textContent = `Latest run ${latest.id} · status ${latest.status.toUpperCase()} · ${latest.message || "no message"}`;
+            } else {
+                document.getElementById("pipeline-activity").textContent = "No pipeline activity recorded yet.";
+            }
+        }
+
+        function renderDashboard() {
+            if (!state.user) return;
+            document.getElementById("dashboard").classList.add("active");
+            switchView("login");
+            document.getElementById("user-greeting").textContent = state.user.full_name
+                ? `Welcome back, ${state.user.full_name}`
+                : `Welcome, ${state.user.email}`;
+            document.getElementById("user-role").textContent = state.user.role.toUpperCase();
+            renderWorkspaceOptions();
+            document.getElementById("register-form").reset();
+            document.getElementById("login-form").reset();
+            document.getElementById("reset-form").reset();
+            document.getElementById("reset-token").value = "";
+            document.getElementById("reset-password").value = "";
+
+            const adminPanel = document.getElementById("admin-panel");
+            if (state.user.role === "admin") {
+                adminPanel.classList.remove("hidden");
+            } else {
+                adminPanel.classList.add("hidden");
+            }
+
+            if (state.currentWorkspace) {
+                loadWorkspaceSnapshot(state.currentWorkspace);
+            }
+        }
+
+        document.getElementById("login-form").addEventListener("submit", async (event) => {
+            event.preventDefault();
+            try {
+                await authenticate("/auth/login", serializeForm(event.target));
+            } catch (error) {
+                showToast(error.message, "error");
+            }
+        });
+
+        document.getElementById("register-form").addEventListener("submit", async (event) => {
+            event.preventDefault();
+            const payload = serializeForm(event.target);
+            payload.workspaces = Array.from(
+                document.querySelectorAll('#register-workspaces input[type="checkbox"]:checked')
+            ).map((input) => input.value);
+            if (!payload.workspaces.length) {
+                showToast("Select at least one workspace", "warning");
+                return;
+            }
+            try {
+                await authenticate("/auth/register", payload);
+            } catch (error) {
+                showToast(error.message, "error");
+            }
+        });
+
+        document.getElementById("reset-form").addEventListener("submit", async (event) => {
+            event.preventDefault();
+            const payload = serializeForm(event.target);
+            try {
+                const response = await fetch(`${apiBase}/auth/password-reset/request`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(payload),
+                });
+                const body = await response.json().catch(() => ({}));
+                if (!response.ok) {
+                    throw new Error(body.detail || body.message || "Unable to request reset");
+                }
+                if (body.reset_token) {
+                    document.getElementById("reset-token").value = body.reset_token;
+                }
+                showToast("Reset token generated.", "success");
+            } catch (error) {
+                showToast(error.message, "error");
+            }
+        });
+
+        document.getElementById("reset-confirm").addEventListener("click", async () => {
+            const token = document.getElementById("reset-token").value.trim();
+            const password = document.getElementById("reset-password").value.trim();
+            if (!token || !password) {
+                showToast("Provide the reset token and a new password", "warning");
+                return;
+            }
+            try {
+                const response = await fetch(`${apiBase}/auth/password-reset/confirm`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ token, new_password: password }),
+                });
+                const body = await response.json().catch(() => ({}));
+                if (!response.ok) {
+                    throw new Error(body.detail || body.message || "Reset failed");
+                }
+                showToast("Password updated. Sign in with your new credentials.", "success");
+                switchView("login");
+            } catch (error) {
+                showToast(error.message, "error");
+            }
+        });
+
+        document.getElementById("workspace-select").addEventListener("change", async (event) => {
+            const workspace = event.target.value;
+            try {
+                const response = await fetchWithAuth("/auth/workspaces/select", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ workspace }),
+                });
+                const body = await response.json().catch(() => ({}));
+                if (!response.ok) {
+                    throw new Error(body.detail || body.message || "Unable to select workspace");
+                }
+                state.user = body;
+                renderWorkspaceOptions();
+                await loadWorkspaceSnapshot(state.currentWorkspace);
+                showToast(`Workspace switched to ${workspace.toUpperCase()}`, "success");
+            } catch (error) {
+                showToast(error.message, "error");
+            }
+        });
+
+        document.getElementById("refresh-workspace").addEventListener("click", () => {
+            if (!state.currentWorkspace) {
+                showToast("Choose a workspace first", "warning");
+                return;
+            }
+            loadWorkspaceSnapshot(state.currentWorkspace);
+        });
+
+        document.getElementById("validate-admin").addEventListener("click", async () => {
+            try {
+                const response = await fetchWithAuth("/auth/guarded/admin");
+                const status = document.getElementById("admin-status");
+                if (response.ok) {
+                    status.textContent = "Admin privileges confirmed.";
+                    status.style.color = varSuccess();
+                } else {
+                    status.textContent = "Access denied.";
+                    status.style.color = varDanger();
+                }
+            } catch (error) {
+                showToast(error.message, "error");
+            }
+        });
+
+        function varSuccess() {
+            return getComputedStyle(document.documentElement).getPropertyValue("--success") || "#34d399";
+        }
+
+        function varDanger() {
+            return getComputedStyle(document.documentElement).getPropertyValue("--danger") || "#f87171";
+        }
+
+        async function bootstrap() {
+            try {
+                const response = await fetch(`${apiBase}/auth/available-workspaces`);
+                const body = await response.json();
+                const container = document.getElementById("register-workspaces");
+                container.innerHTML = "";
+                (body.workspaces || ["dev"]).forEach((workspace) => {
+                    const label = document.createElement("label");
+                    label.className = "checkbox";
+                    label.innerHTML = `<input type="checkbox" value="${workspace}" ${workspace === "dev" ? "checked" : ""}/> ${workspace.toUpperCase()}`;
+                    container.appendChild(label);
+                });
+            } catch (error) {
+                console.warn("Unable to load available workspaces", error);
+            }
+
+            const stored = sessionStorage.getItem("authSession");
+            if (stored) {
+                try {
+                    const parsed = JSON.parse(stored);
+                    state.session = parsed;
+                    await fetchProfile();
+                    await refreshWorkspaces();
+                    if (state.currentWorkspace) {
+                        await loadWorkspaceSnapshot(state.currentWorkspace);
+                    }
+                    scheduleRefresh();
+                } catch (error) {
+                    clearSession(false);
+                }
+            }
+        }
+
+        bootstrap();
+    </script>
+</body>
+</html>

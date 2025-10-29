@@ -14,6 +14,7 @@ os.environ.setdefault(
 )
 os.environ.setdefault("RATE_LIMIT_MAX_REQUESTS", "100")
 os.environ.setdefault("RATE_LIMIT_WINDOW_SECONDS", "60")
+os.environ.setdefault("AUTH_SECRET_KEY", "test-secret-key")
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 if str(PROJECT_ROOT) not in sys.path:

@@ -29,6 +29,10 @@ class Settings(BaseSettings):
     celery_broker_url: str = Field("memory://", env="CELERY_BROKER_URL")
     celery_result_backend: str = Field("rpc://", env="CELERY_RESULT_BACKEND")
     pipeline_config_json: str | None = Field(None, env="WORKSPACE_PIPELINES_JSON")
+    auth_secret_key: str = Field("change-me", env="AUTH_SECRET_KEY")
+    access_token_expire_minutes: int = Field(15, env="ACCESS_TOKEN_EXPIRE_MINUTES")
+    refresh_token_expire_minutes: int = Field(60 * 24 * 7, env="REFRESH_TOKEN_EXPIRE_MINUTES")
+    password_reset_token_expire_minutes: int = Field(30, env="PASSWORD_RESET_TOKEN_EXPIRE_MINUTES")
 
     class Config:
         env_file_encoding = "utf-8"
