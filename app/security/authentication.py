@@ -27,6 +27,12 @@ def _utcnow() -> datetime:
     return datetime.now(timezone.utc)
 
 
+def normalize_utc(dt: datetime) -> datetime:
+    if dt.tzinfo is None:
+        return dt.replace(tzinfo=timezone.utc)
+    return dt.astimezone(timezone.utc)
+
+
 def hash_password(password: str) -> str:
     salt = secrets.token_bytes(16)
     digest = hashlib.pbkdf2_hmac(
@@ -228,12 +234,13 @@ def consume_password_reset_token(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Invalid or expired reset token",
         )
-    if record.expires_at < _utcnow():
+    now = _utcnow()
+    if normalize_utc(record.expires_at) < now:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Invalid or expired reset token",
         )
-    record.used_at = _utcnow()
+    record.used_at = now
     session.flush()
     return record
 
