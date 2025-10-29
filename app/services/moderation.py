@@ -8,6 +8,7 @@ from typing import Any, Sequence
 
 import anyio
 from fastapi import WebSocket
+from fastapi.encoders import jsonable_encoder
 from starlette.websockets import WebSocketDisconnect
 
 from app.models import ModerationDecision, ModerationRequest
@@ -31,7 +32,7 @@ class ModerationNotifier:
             self._connections.discard(websocket)
 
     async def broadcast(self, message: dict[str, Any]) -> None:
-        payload = json.dumps(message)
+        payload = json.dumps(jsonable_encoder(message))
         with self._lock:
             connections = list(self._connections)
         stale: list[WebSocket] = []

@@ -4,7 +4,6 @@ from __future__ import annotations
 from pathlib import Path
 
 from fastapi import FastAPI, Request
-from fastapi.middleware.httpsredirect import HTTPSRedirectMiddleware
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 
@@ -15,6 +14,7 @@ from app.security.audit import configure_audit_logger
 from app.security.encryption import get_data_encryptor
 from app.security.middleware import (
     AuditMiddleware,
+    HTTPSRedirectMiddleware,
     RateLimitMiddleware,
     SanitizationMiddleware,
 )

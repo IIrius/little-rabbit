@@ -441,6 +441,10 @@
         const notificationBanner = document.getElementById("notification-banner");
 
         const API_BASE = "/api/moderation";
+        const QUEUE_ENDPOINT = "/api/moderation/queue";
+        const HISTORY_ENDPOINT = "/api/moderation/history";
+        const REQUESTS_ENDPOINT = "/api/moderation/requests";
+        const WS_ENDPOINT = "/api/moderation/notifications";
         const queueTemplate = document.getElementById("queue-row-template");
         const historyTemplate = document.getElementById("history-item-template");
 
@@ -567,7 +571,7 @@
 
         async function loadQueue() {
             try {
-                const response = await fetch(`${API_BASE}/queue`);
+                const response = await fetch(QUEUE_ENDPOINT);
                 if (!response.ok) throw new Error("Failed to load queue");
                 const payload = await response.json();
                 renderQueue(payload);
@@ -581,7 +585,7 @@
 
         async function loadRequestDetails(requestId) {
             try {
-                const response = await fetch(`${API_BASE}/requests/${requestId}`);
+                const response = await fetch(`${REQUESTS_ENDPOINT}/${requestId}`);
                 if (!response.ok) throw new Error("Request details unavailable");
                 const item = await response.json();
                 requestCache.set(item.id, item);
@@ -628,7 +632,7 @@
             try {
                 if (Array.isArray(requestIds)) {
                     payload.request_ids = requestIds;
-                    const response = await fetch(`${API_BASE}/requests/bulk-decision`, {
+                    const response = await fetch(`${REQUESTS_ENDPOINT}/bulk-decision`, {
                         method: "POST",
                         headers: { "Content-Type": "application/json" },
                         body: JSON.stringify(payload),
@@ -638,7 +642,7 @@
                         throw new Error(errorBody.detail || "Bulk decision failed");
                     }
                 } else {
-                    const response = await fetch(`${API_BASE}/requests/${requestIds}/decision`, {
+                    const response = await fetch(`${REQUESTS_ENDPOINT}/${requestIds}/decision`, {
                         method: "POST",
                         headers: { "Content-Type": "application/json" },
                         body: JSON.stringify(payload),
@@ -664,7 +668,7 @@
                 const params = new URLSearchParams();
                 const status = historyStatus.value;
                 if (status) params.set("status", status);
-                const response = await fetch(`${API_BASE}/history?${params.toString()}`);
+                const response = await fetch(`${HISTORY_ENDPOINT}?${params.toString()}`);
                 if (!response.ok) throw new Error("Failed to load history");
                 const history = await response.json();
 
@@ -709,7 +713,7 @@
         function connectWebSocket() {
             try {
                 const protocol = window.location.protocol === "https:" ? "wss" : "ws";
-                const ws = new WebSocket(`${protocol}://${window.location.host}/api/moderation/notifications`);
+                const ws = new WebSocket(`${protocol}://${window.location.host}${WS_ENDPOINT}`);
 
                 ws.onmessage = (event) => {
                     try {

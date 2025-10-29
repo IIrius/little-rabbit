@@ -34,6 +34,7 @@ def _create_request(
     session.add(request)
     session.commit()
     session.refresh(request)
+    session.expunge(request)
     return request
 
 

@@ -6,6 +6,9 @@ import time
 
 from fastapi import Request
 from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoint
+from starlette.middleware.httpsredirect import (
+    HTTPSRedirectMiddleware as StarletteHTTPSRedirectMiddleware,
+)
 from starlette.responses import JSONResponse, Response
 
 from app.security.rate_limit import RateLimiter
@@ -98,6 +101,16 @@ class SanitizationMiddleware(BaseHTTPMiddleware):
             ]
             request.scope["query_string"] = _encode_query_string(sanitized_items)
         return await call_next(request)
+
+
+class HTTPSRedirectMiddleware(StarletteHTTPSRedirectMiddleware):
+    """Redirect HTTP requests to HTTPS without interrupting WebSocket upgrades."""
+
+    async def __call__(self, scope, receive, send):  # type: ignore[override]
+        if scope.get("type") == "websocket":
+            await self.app(scope, receive, send)
+            return
+        await super().__call__(scope, receive, send)
 
 
 def _client_identifier(request: Request) -> str:
