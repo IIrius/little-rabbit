@@ -2,15 +2,9 @@
 from __future__ import annotations
 
 from datetime import datetime
-feat/moderation-console-ui-backend-ws
 from typing import List, Optional
 
-from pydantic import BaseModel, Field, validator
-
-from typing import Optional
-
-from pydantic import AnyUrl, BaseModel, HttpUrl, constr, validator
-main
+from pydantic import AnyUrl, BaseModel, Field, HttpUrl, constr, validator
 
 from app.models import PipelineRunStatus, ProxyProtocol, SourceKind
 from app.security.sanitization import sanitize_text
@@ -32,7 +26,6 @@ class ItemRead(ItemCreate):
         orm_mode = True
 
 
-feat/moderation-console-ui-backend-ws
 class ModerationAIAnalysis(BaseModel):
     score: float
     summary: str
@@ -103,13 +96,11 @@ class WorkspaceSourceRead(WorkspaceSourceBase):
     id: int
     workspace: str
     created_at: datetime
-main
 
     class Config:
         orm_mode = True
 
 
-feat/moderation-console-ui-backend-ws
 class ModerationDecisionCreate(BaseModel):
     decision: str
     reason: Optional[str] = None
@@ -258,4 +249,3 @@ class WorkspaceDashboardSnapshot(BaseModel):
     proxies: list[WorkspaceProxyRead]
     telegram_channels: list[WorkspaceTelegramChannelRead]
     pipeline_runs: list[PipelineRunRead]
-main

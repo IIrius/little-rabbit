@@ -7,19 +7,16 @@ from datetime import datetime, timezone
 from typing import Dict, List
 from uuid import uuid4
 
-<feat/moderation-console-ui-backend-ws
-from fastapi import APIRouter, Depends, HTTPException, Query, WebSocket, status
-=======
 from fastapi import (
     APIRouter,
     Depends,
     HTTPException,
+    Query,
     WebSocket,
     WebSocketDisconnect,
     status,
 )
 from fastapi.encoders import jsonable_encoder
-main
 from fastapi.responses import Response
 from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
 from sqlalchemy import desc, select
@@ -204,7 +201,6 @@ def create_item(
 
 
 @router.get(
-feat/moderation-console-ui-backend-ws
     "/moderation/queue",
     response_model=List[schemas.ModerationRequestRead],
     tags=["moderation"],
@@ -440,7 +436,9 @@ async def moderation_notifications(websocket: WebSocket) -> None:
         await listen_for_client_messages(websocket)
     finally:
         moderation_notifier.disconnect(websocket)
-=======
+
+
+@router.get(
     "/workspaces/{workspace}/sources",
     response_model=List[schemas.WorkspaceSourceRead],
     tags=["workspaces"],
@@ -977,4 +975,3 @@ async def workspace_pipeline_status_stream(websocket: WebSocket, workspace: str)
     finally:
         await pipeline_status_broadcaster.unsubscribe(workspace, queue)
         session.close()
-main

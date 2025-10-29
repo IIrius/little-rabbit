@@ -2,13 +2,13 @@
 from __future__ import annotations
 
 from datetime import datetime
-feat/moderation-console-ui-backend-ws
-from enum import StrEnum
+from enum import Enum, StrEnum
 from typing import Optional
 
 from sqlalchemy import (
+    Boolean,
     DateTime,
-    Enum,
+    Enum as SAEnum,
     Float,
     ForeignKey,
     String,
@@ -16,15 +16,7 @@ from sqlalchemy import (
     UniqueConstraint,
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from sqlalchemy.sql import func
-
-from enum import Enum
-from typing import Optional
-
-from sqlalchemy import Boolean, DateTime, Enum as SAEnum, String, Text, UniqueConstraint
-from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy.sql import expression, func
-main
 
 from app.database import Base
 
@@ -59,7 +51,6 @@ class NewsArticle(Base):
     )
 
 
-feat/moderation-console-ui-backend-ws
 class ModerationStatus(StrEnum):
     """Enumeration of moderation decisions."""
 
@@ -82,7 +73,7 @@ class ModerationRequest(Base):
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )
     status: Mapped[ModerationStatus] = mapped_column(
-        Enum(ModerationStatus),
+        SAEnum(ModerationStatus, name="moderation_request_status"),
         default=ModerationStatus.PENDING,
         nullable=False,
         index=True,
@@ -111,7 +102,7 @@ class ModerationDecision(Base):
         index=True,
     )
     decision: Mapped[ModerationStatus] = mapped_column(
-        Enum(ModerationStatus), nullable=False
+        SAEnum(ModerationStatus, name="moderation_decision_status"), nullable=False
     )
     decided_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
@@ -121,6 +112,8 @@ class ModerationDecision(Base):
 
     request: Mapped[ModerationRequest] = relationship(
         "ModerationRequest", back_populates="decisions"
+    )
+
 
 class SourceKind(str, Enum):
     RSS = "rss"
@@ -245,5 +238,4 @@ class PipelineRun(Base):
     )
     finished_at: Mapped[Optional[datetime]] = mapped_column(
         DateTime(timezone=True), nullable=True
-main
     )
