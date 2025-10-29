@@ -8,7 +8,7 @@ jinja2==3.1.2
 psycopg2-binary==2.9.9
 SQLAlchemy==2.0.23
 uvicorn[standard]==0.23.2
-pydantic==1.10.12
+pydantic[email]==1.10.12
 prometheus-client==0.17.1
 pytest==7.4.3
 httpx==0.24.1
