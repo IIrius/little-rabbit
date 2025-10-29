@@ -4,6 +4,7 @@ cachetools==5.3.2
 cryptography==41.0.7
 fastapi==0.110.0
 celery==5.3.6
+jinja2==3.1.2
 psycopg2-binary==2.9.9
 SQLAlchemy==2.0.23
 uvicorn[standard]==0.23.2
