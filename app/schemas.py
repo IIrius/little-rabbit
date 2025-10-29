@@ -104,7 +104,7 @@ class WorkspaceSourceRead(WorkspaceSourceBase):
 class ModerationDecisionCreate(BaseModel):
     decision: str
     reason: Optional[str] = None
-    actor: Optional[str] = Field(default=None, alias="decided_by")
+    actor: Optional[str] = None
 
     @validator("decision")
     def _validate_decision(cls, value: str) -> str:
