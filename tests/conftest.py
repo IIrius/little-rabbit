@@ -25,6 +25,7 @@ from sqlalchemy.pool import StaticPool
 
 from app.database import Base, get_session
 from app.main import app
+from app import models  # noqa: F401 - ensure models are loaded
 
 SQLALCHEMY_TEST_URL = "sqlite+pysqlite:///:memory:"
 
