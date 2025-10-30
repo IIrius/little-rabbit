@@ -2,6 +2,13 @@ from __future__ import annotations
 
 from typing import Any, Optional, Set
 
+try:  # pragma: no cover - dependency resolution is environment specific
+    from telegram import Bot as _TelegramBot  # type: ignore[attr-defined]
+    from telegram.error import TelegramError as _TelegramError  # type: ignore[attr-defined]
+except ModuleNotFoundError:  # pragma: no cover - exercised in unit tests via patching
+    _TelegramBot = None  # type: ignore[assignment]
+    _TelegramError: type[Exception] = Exception
+
 from .exceptions import (
     TelegramChannelBindingError,
     TelegramClientError,
@@ -11,13 +18,6 @@ from .exceptions import (
 )
 from .models import DeliveryStrategy, WorkspaceTelegramConfig
 from .storage import WorkspaceTelegramStore
-
-try:  # pragma: no cover - dependency resolution is environment specific
-    from telegram import Bot as _TelegramBot  # type: ignore[attr-defined]
-    from telegram.error import TelegramError as _TelegramError  # type: ignore[attr-defined]
-except ModuleNotFoundError:  # pragma: no cover - exercised in unit tests via patching
-    _TelegramBot = None  # type: ignore[assignment]
-    _TelegramError: type[Exception] = Exception
 
 Bot = _TelegramBot  # Backwards compatibility alias used by tests
 TelegramError = _TelegramError
