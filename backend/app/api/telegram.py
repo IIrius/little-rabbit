@@ -5,11 +5,6 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException, status
 
 from app.dependencies import get_telegram_client
-from app.schemas.telegram import (
-    BindChannelRequest,
-    RegisterBotRequest,
-    WorkspaceTelegramConfigResponse,
-)
 from app.integrations.telegram import (
     TelegramChannelBindingError,
     TelegramClient,
@@ -17,6 +12,11 @@ from app.integrations.telegram import (
     TelegramConfigurationError,
     TelegramPermissionError,
     TelegramWorkspaceNotRegisteredError,
+)
+from app.schemas.telegram import (
+    BindChannelRequest,
+    RegisterBotRequest,
+    WorkspaceTelegramConfigResponse,
 )
 
 router = APIRouter(prefix="/workspaces/{workspace_id}/telegram", tags=["telegram"])
