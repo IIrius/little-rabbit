@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import List, Optional, cast
 
-from pydantic import BaseModel, Field, HttpUrl, model_validator
+from pydantic import BaseModel, Field, HttpUrl, root_validator
 
 from app.integrations.telegram.models import DeliveryStrategy, WorkspaceTelegramConfig
 
@@ -13,11 +13,15 @@ class RegisterBotRequest(BaseModel):
     webhook_url: Optional[HttpUrl] = None
     allowed_channel_ids: List[str] = Field(default_factory=list)
 
-    @model_validator(mode="after")
-    def _validate_webhook_requirements(self) -> "RegisterBotRequest":
-        if self.strategy is DeliveryStrategy.WEBHOOK and self.webhook_url is None:
+    @root_validator()
+    def _validate_webhook_requirements(
+        cls, values: dict[str, object]
+    ) -> dict[str, object]:
+        strategy = values.get("strategy")
+        webhook_url = values.get("webhook_url")
+        if strategy == DeliveryStrategy.WEBHOOK and webhook_url is None:
             raise ValueError("webhook_url is required when strategy is webhook")
-        return self
+        return values
 
 
 class BindChannelRequest(BaseModel):
