@@ -36,7 +36,7 @@ Only the root-level `app` package contains backend source code. All tooling and 
 
 2. Install dependencies:
    ```bash
-   pip install -r requirements.txt
+   pip install -r requirements.txt -r requirements-dev.txt
    ```
 
 3. Run the FastAPI application:
@@ -69,6 +69,8 @@ The project standardises on:
 - [Ruff](https://docs.astral.sh/ruff/) for linting and import sorting
 - [mypy](http://mypy-lang.org/) for static typing
 
+Tooling dependencies are pinned in `requirements-dev.txt`, which layers on top of `requirements.txt` so local runs match CI.
+
 Install pre-commit hooks to run the suite automatically:
 ```bash
 pre-commit install
@@ -77,7 +79,7 @@ You can trigger individual tools manually:
 ```bash
 ruff check app tests alembic
 black app tests alembic
-mypy app
+mypy app tests alembic
 ```
 
 ## Docker Compose
