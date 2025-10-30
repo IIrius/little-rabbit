@@ -1,9 +1,6 @@
 from __future__ import annotations
 
-from typing import Optional, Set
-
-from telegram import Bot
-from telegram.error import TelegramError
+from typing import Any, Optional, Set
 
 from .exceptions import (
     TelegramChannelBindingError,
@@ -12,8 +9,27 @@ from .exceptions import (
     TelegramPermissionError,
     TelegramWorkspaceNotRegisteredError,
 )
+
+try:  # pragma: no cover - dependency resolution is environment specific
+    from telegram import Bot as _TelegramBot  # type: ignore[attr-defined]
+    from telegram.error import TelegramError as _TelegramError  # type: ignore[attr-defined]
+except ModuleNotFoundError:  # pragma: no cover - exercised in unit tests via patching
+    _TelegramBot = None  # type: ignore[assignment]
+    _TelegramError: type[Exception] = Exception
+
+Bot = _TelegramBot  # Backwards compatibility alias used by tests
+TelegramError = _TelegramError
+
 from .models import DeliveryStrategy, WorkspaceTelegramConfig
 from .storage import WorkspaceTelegramStore
+
+
+def _create_bot(token: str) -> Any:
+    if Bot is None:
+        raise TelegramConfigurationError(
+            "python-telegram-bot dependency is required but not installed."
+        )
+    return Bot(token)  # type: ignore[return-value]
 
 
 class TelegramClient:
@@ -67,7 +83,7 @@ class TelegramClient:
                 f"Workspace '{workspace_id}' cannot bind to channel '{channel_id}'."
             )
 
-        bot = Bot(token=config.token)
+        bot = _create_bot(config.token)
         try:
             chat = await bot.get_chat(chat_id=channel_id)
         except TelegramError as exc:
@@ -88,7 +104,7 @@ class TelegramClient:
         return config
 
     async def _apply_delivery_strategy(self, config: WorkspaceTelegramConfig) -> None:
-        bot = Bot(token=config.token)
+        bot = _create_bot(config.token)
 
         if config.strategy is DeliveryStrategy.WEBHOOK:
             assert config.webhook_url is not None
