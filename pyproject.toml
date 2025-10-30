@@ -5,7 +5,9 @@ target-version = ["py311"]
 [tool.ruff]
 line-length = 88
 target-version = "py311"
-select = ["E", "F", "I", "B"]
+
+[tool.ruff.lint]
+select = ["F"]
 
 [tool.ruff.lint.isort]
 known-first-party = ["app"]

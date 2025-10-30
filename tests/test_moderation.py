@@ -3,8 +3,6 @@ from __future__ import annotations
 
 from collections.abc import Iterable
 
-import pytest
-
 from app import models
 from app.services.moderation import serialize_flags
 
