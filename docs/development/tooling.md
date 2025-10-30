@@ -58,13 +58,28 @@ per-developer path overrides.
   mypy app
   ```
 
-- Execute the test suite:
+- Execute the (async-enabled) test suite with coverage:
   ```bash
   pytest
   ```
+  Pytest automatically enables asyncio support and writes terminal and XML
+  coverage reports (`coverage.xml`) on every run.
 
 These commands mirror the CI workflow so passing locally guarantees the checks
 will pass remotely.
+
+### Test fixtures
+
+Pytest exposes a small collection of fixtures to make backend tests predictable:
+
+- `async_client` – an `httpx.AsyncClient` bound to the FastAPI app with
+  lifespan support.
+- `db_session` – a transactional SQLAlchemy session using an in-memory SQLite
+  database; changes are rolled back after each test.
+- `redis_client` – a `fakeredis` instance wired into `app.state` for tests that
+  require Redis behaviour without an external service.
+- `user_factory` – a Factory Boy helper for creating `app.models.User` records
+  with a known plaintext password for authentication flows.
 
 ## CI parity command list
 

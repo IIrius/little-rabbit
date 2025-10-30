@@ -85,6 +85,9 @@ mypy app
 pytest
 ```
 
+Pytest runs with asyncio support and writes terminal and XML coverage reports on
+completion (`coverage.xml`).
+
 ## Application runtime
 
 ### FastAPI application

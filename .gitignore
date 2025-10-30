@@ -36,6 +36,7 @@ yarn-error.log*
 .ruff_cache/
 .coverage
 coverage/
+coverage.xml
 htmlcov/
 
 # Editor directories and files

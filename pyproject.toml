@@ -30,3 +30,11 @@ warn_required_dynamic_aliases = true
 [tool.pytest.ini_options]
 pythonpath = ["."]
 testpaths = ["tests"]
+asyncio_mode = "auto"
+addopts = [
+    "--strict-markers",
+    "--cov=app",
+    "--cov=tests",
+    "--cov-report=term-missing",
+    "--cov-report=xml",
+]
