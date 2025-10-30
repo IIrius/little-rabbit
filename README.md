@@ -1,100 +1,132 @@
 # Deployment Service
 
-A minimal FastAPI application demonstrating containerised deployment workflows, database migrations, and automated CI/CD.
+The Deployment Service is a FastAPI backend that ships everything through a single
+canonical Python package, `app`. All supporting tooling is configured at the
+repository root so quality gates, local runs, and CI pipelines share the same
+entry points. The `pyproject.toml` file defines the behaviour of our formatters,
+linting rules, type checker, and pytest settings, while pinned development
+requirements guarantee identical environments locally, in Docker, and in CI.
 
 ## Repository layout
 
 ```
 .
-├── app/               # FastAPI application package (canonical backend)
-├── alembic/           # Database migration environment and versions
-├── docs/              # OpenAPI schema and security documentation
-├── frontend/          # Vite + React placeholder workspace
-├── infra/             # Infrastructure-as-code entry point
-├── k8s/               # Kubernetes manifests
-├── tests/             # Backend unit and integration tests
-├── Dockerfile         # Production image definition
-├── docker-compose.yml # Local development stack
-└── requirements.txt   # Python dependencies
+├── app/                  FastAPI application package (only backend source)
+├── alembic/              Database migration environment and versions
+├── docs/                 Developer documentation, OpenAPI artefacts, security notes
+├── frontend/             Vite + React placeholder workspace
+├── infra/                Infrastructure-as-code entry point
+├── k8s/                  Kubernetes manifests
+├── tests/                Backend unit and integration tests
+├── Dockerfile            Production image definition
+├── docker-compose.yml    Local development stack
+├── pyproject.toml        Shared tooling configuration (formatting, lint, mypy, pytest)
+└── requirements.txt      Application + development dependencies installed everywhere
 ```
 
-Only the root-level `app` package contains backend source code. All tooling and configuration reference this single location to avoid duplicate modules.
+The backend code must live inside `app/`. Avoid creating additional top-level
+packages—tooling assumes `app` is the single import namespace.
 
-## Prerequisites
+## Getting started
+
+Prerequisites:
 
 - Python 3.11+
 - Docker with Docker Compose v2 (optional, for containerised runs)
 - [pre-commit](https://pre-commit.com/#installation) for local quality checks
 
-## Backend development
-
-1. (Optional) Create a virtual environment:
+1. (Optional) Create an isolated Python environment:
    ```bash
    python -m venv .venv
    source .venv/bin/activate
    ```
 
-2. Install dependencies:
+2. Install application and tooling dependencies:
    ```bash
    pip install -r requirements.txt
    ```
 
-3. Run the FastAPI application:
+3. Register the git hooks so formatting and linting run automatically:
    ```bash
-   uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
-   ```
-   Visit <http://127.0.0.1:8000/docs> for the interactive OpenAPI UI.
-
-4. Apply database migrations when needed:
-   ```bash
-   alembic upgrade head
+   pre-commit install
    ```
 
-5. (Optional) Start Celery workers:
-   ```bash
-   celery -A app.celery_app.celery_app worker --loglevel=info
-   ```
+Configuration from `pyproject.toml` adds `app` to `PYTHONPATH`, makes pytest and
+typing aware of the single package, and aligns import sorting across tools.
 
-## Testing
+## Quality checks
 
-Run the backend tests from the repository root:
+These commands run the same validations that CI enforces. Execute them from the
+repository root.
+
+### Linting and formatting
+
+```bash
+pre-commit run --all-files
+```
+
+To run individual tools:
+
+```bash
+ruff check .
+black .
+```
+
+### Type checking
+
+```bash
+mypy app
+```
+
+### Tests
+
 ```bash
 pytest
 ```
 
-## Linting and static analysis
+## Application runtime
 
-The project standardises on:
-- [Black](https://black.readthedocs.io/) for formatting
-- [Ruff](https://docs.astral.sh/ruff/) for linting and import sorting
-- [mypy](http://mypy-lang.org/) for static typing
+### FastAPI application
 
-Install pre-commit hooks to run the suite automatically:
 ```bash
-pre-commit install
-```
-You can trigger individual tools manually:
-```bash
-ruff check app tests alembic
-black app tests alembic
-mypy app
+uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
 ```
 
-## Docker Compose
+Visit <http://127.0.0.1:8000/docs> for the interactive OpenAPI UI.
 
-Use the provided development composition to run API and database containers:
+### Celery worker
+
+```bash
+celery -A app.celery_app.celery_app worker --loglevel=info
+```
+
+### Database migrations
+
+```bash
+alembic upgrade head
+```
+
+### Docker workflow
+
 ```bash
 docker compose up --build
 ```
-The API is exposed on <http://localhost:8000>. The production variant lives in `docker-compose.prod.yaml` and the Dockerfile runs Alembic migrations automatically on start-up.
 
-## API documentation
+The API is exposed on <http://localhost:8000>. The production variant lives in
+`docker-compose.prod.yaml`. The Dockerfile runs Alembic migrations before
+launching Uvicorn.
 
-The OpenAPI document is bundled at `docs/openapi.json`. Regenerate it after schema changes:
+### API schema regeneration
+
 ```bash
 python docs/generate_openapi.py
 ```
 
-## CI/CD
+## Additional documentation
 
-GitHub Actions workflows in `.github/workflows/` install dependencies with `pip`, enforce the linting suite, and run `pytest`. They use the single `app` package as the backend source of truth.
+- [Tooling and development guide](docs/development/tooling.md) — deeper
+  reasoning, CI parity commands, and best practices.
+- [Tooling analysis (Ticket 1)](docs/development/tooling.md#tooling-analysis-ticket-1) —
+  historical context on the unified setup and how to keep it stable.
+- [Security posture and mitigations](docs/SECURITY.md)
+- [Deployment reference](docs/DEPLOYMENT.md)
