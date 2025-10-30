@@ -1,18 +1,27 @@
+# Documentation artifacts
 docs-platform-architecture-blueprint
-# General OS artifacts
-.DS_Store
-Thumbs.db
 
 # Python
 __pycache__/
 *.py[cod]
+*$py.class
+*.so
+
+# Environments
 .env
+.env.*
+!.env.example
+!.env.prod
 .venv/
+.venv*/
+
+# Distribution / packaging
+build/
+dist/
+*.egg-info/
 
 # Node / Frontend
 node_modules/
-dist/
-build/
 .next/
 
 # Logs
@@ -20,28 +29,6 @@ build/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-
-# Editor directories and files
-.vscode/
-.idea/
-*.swp
-
-chore/init-monorepo-skeleton-fastapi-backend-poetry-precommit
-# Byte-compiled / optimized / DLL files
-__pycache__/
-*.py[cod]
-*$py.class
-
-# Virtual environments
-.env
-.env.*
-.venv
-.venv*/
-
-# Distribution / packaging
-build/
-dist/
-*.egg-info/
 
 # Tool caches
 .mypy_cache/
@@ -52,36 +39,12 @@ coverage/
 htmlcov/
 
 # Editor directories and files
-.idea/
 .vscode/
+.idea/
 *.swp
-
-# Python
-__pycache__/
-*.py[cod]
-*.so
-*.egg
-*.egg-info/
-dist/
-build/
-
-# Environments
-.env
-.env.*
-!.env.example
-!.env.prod
-.venv/
+.DS_Store
+Thumbs.db
 
 # Alembic
-alembic/*.pyc
 alembic/__pycache__/
-
-# Docker
-*.log
-
-# VSCode
-.vscode/
-.idea/
-main
-.DS_Store
-main
+alembic/*.pyc
