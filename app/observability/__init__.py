@@ -6,6 +6,8 @@ from app.observability.metrics import (
     PIPELINE_LAST_RUN,
     PIPELINE_PUBLISHED_COUNTER,
     PIPELINE_RUN_COUNTER,
+    PIPELINE_TELEGRAM_MESSAGES_COUNTER,
+    PIPELINE_MODERATION_REQUESTS_COUNTER,
     record_pipeline_failure,
     record_pipeline_success,
 )
@@ -21,6 +23,8 @@ __all__ = [
     "PIPELINE_LAST_RUN",
     "PIPELINE_PUBLISHED_COUNTER",
     "PIPELINE_RUN_COUNTER",
+    "PIPELINE_TELEGRAM_MESSAGES_COUNTER",
+    "PIPELINE_MODERATION_REQUESTS_COUNTER",
     "record_pipeline_failure",
     "record_pipeline_success",
 ]

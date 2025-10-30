@@ -38,7 +38,11 @@ class AlertingClient:
         self.events.append(event)
         logger.error(
             "pipeline failure alert",
-            extra={"workspace": workspace, "severity": severity, "message": message},
+            extra={
+                "workspace": workspace,
+                "severity": severity,
+                "alert_message": message,
+            },
         )
         return event
 
