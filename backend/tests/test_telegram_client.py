@@ -3,7 +3,9 @@ from __future__ import annotations
 from types import SimpleNamespace
 
 import pytest
-from telegram.error import TelegramError
+
+from app.integrations.telegram import client as telegram_client
+from app.integrations.telegram.client import TelegramError
 
 
 @pytest.fixture
@@ -31,7 +33,7 @@ def fake_bot(monkeypatch: pytest.MonkeyPatch):
             return SimpleNamespace(id=int(chat_id))
 
     DummyBot.instances = instances
-    monkeypatch.setattr("app.integrations.telegram.client.Bot", DummyBot)
+    monkeypatch.setattr(telegram_client, "Bot", DummyBot, raising=False)
     yield DummyBot
     instances.clear()
 
