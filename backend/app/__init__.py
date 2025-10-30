@@ -1,3 +1,5 @@
 """Backend application package."""
 
-__all__ = []
+from . import models
+
+__all__ = ["models"]
