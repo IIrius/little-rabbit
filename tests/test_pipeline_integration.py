@@ -5,6 +5,7 @@ import json
 
 from sqlalchemy import select
 
+from app.config import get_settings
 from app.models import (
     ModerationRequest,
     ModerationStatus,
@@ -81,6 +82,7 @@ def test_pipeline_telegram_publishing_and_moderation(
         ),
     )
     load_workspace_configs.cache_clear()
+    get_settings.cache_clear()
 
     channel_primary = WorkspaceTelegramChannel(
         workspace="beta",

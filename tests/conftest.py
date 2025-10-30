@@ -9,6 +9,8 @@ import sys
 import pytest
 from fastapi.testclient import TestClient
 
+from app.config import get_settings
+
 os.environ.setdefault(
     "ENCRYPTION_KEY", "BYPHtIuWGHNirMRHkRkNvztNFVQVw1Gc7YCOUMIqFZs="
 )
@@ -71,12 +73,14 @@ def setup_database() -> Generator[None, None, None]:
     from app.services import telegram as telegram_service
 
     load_workspace_configs.cache_clear()
+    get_settings.cache_clear()
     telegram_service.set_telegram_publisher(None)
 
     yield
 
     telegram_service.set_telegram_publisher(None)
     load_workspace_configs.cache_clear()
+    get_settings.cache_clear()
 
     session = TestingSessionLocal()
     session.close()
