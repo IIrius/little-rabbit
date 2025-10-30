@@ -46,12 +46,16 @@ class TelegramClient:
         try:
             await self._apply_delivery_strategy(config)
         except TelegramError as exc:
-            raise TelegramClientError("Failed to apply Telegram delivery strategy") from exc
+            raise TelegramClientError(
+                "Failed to apply Telegram delivery strategy"
+            ) from exc
 
         self._store.save(config)
         return config
 
-    async def bind_channel(self, *, workspace_id: str, channel_id: str) -> WorkspaceTelegramConfig:
+    async def bind_channel(
+        self, *, workspace_id: str, channel_id: str
+    ) -> WorkspaceTelegramConfig:
         config = self._store.get(workspace_id)
         if config is None:
             raise TelegramWorkspaceNotRegisteredError(

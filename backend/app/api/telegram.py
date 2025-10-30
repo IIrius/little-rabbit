@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from typing import Annotated
+
 from fastapi import APIRouter, Depends, HTTPException, status
 
 from app.dependencies import get_telegram_client
@@ -38,7 +40,7 @@ def _raise_from_client_error(exc: TelegramClientError) -> None:
 async def register_bot(
     workspace_id: str,
     payload: RegisterBotRequest,
-    client: TelegramClient = Depends(get_telegram_client),
+    client: Annotated[TelegramClient, Depends(get_telegram_client)],
 ) -> WorkspaceTelegramConfigResponse:
     try:
         config = await client.register_bot(
@@ -57,7 +59,7 @@ async def register_bot(
 async def bind_channel(
     workspace_id: str,
     payload: BindChannelRequest,
-    client: TelegramClient = Depends(get_telegram_client),
+    client: Annotated[TelegramClient, Depends(get_telegram_client)],
 ) -> WorkspaceTelegramConfigResponse:
     try:
         config = await client.bind_channel(
@@ -72,7 +74,7 @@ async def bind_channel(
 @router.get("/bot", response_model=WorkspaceTelegramConfigResponse)
 async def get_bot(
     workspace_id: str,
-    client: TelegramClient = Depends(get_telegram_client),
+    client: Annotated[TelegramClient, Depends(get_telegram_client)],
 ) -> WorkspaceTelegramConfigResponse:
     try:
         config = client.get_config(workspace_id)
