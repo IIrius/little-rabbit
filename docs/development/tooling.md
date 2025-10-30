@@ -33,7 +33,7 @@ per-developer path overrides.
 
 2. Install the pinned requirements that power both runtime and tooling:
    ```bash
-   pip install -r requirements.txt
+   pip install -r requirements.txt -r requirements-dev.txt
    ```
 
 3. Install the git hooks so the same checks run before each commit:
