@@ -5,6 +5,7 @@ description = "FastAPI backend service for the monorepo skeleton."
 authors = ["Monorepo Maintainers <dev@company.com>"]
 readme = "README.md"
 packages = [{ include = "app" }]
+include = [{ path = "app/integrations" }]
 
 [tool.poetry.dependencies]
 python = "^3.11"
