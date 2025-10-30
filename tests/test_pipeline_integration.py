@@ -11,6 +11,8 @@ from app.models import (
     ModerationRequest,
     ModerationStatus,
     NewsArticle,
+    ProcessingOutcome,
+    ProcessingRecord,
     WorkspaceTelegramChannel,
 )
 from app.observability.alerts import alerting_client
@@ -159,3 +161,76 @@ def test_pipeline_telegram_publishing_and_moderation(
     telegram_service.set_telegram_publisher(None)
     alerting_client.reset()
     load_workspace_configs.cache_clear()
+
+
+def test_processing_pipeline_emits_dedup_and_fake_metrics(
+    monkeypatch, db_session
+) -> None:
+    alerting_client.reset()
+    load_workspace_configs.cache_clear()
+
+    monkeypatch.setenv(
+        "WORKSPACE_PIPELINES_JSON",
+        json.dumps(
+            {
+                "gamma": {
+                    "workspace": "gamma",
+                    "enabled": True,
+                    "schedule_seconds": 60,
+                    "retry_attempts": 0,
+                    "retry_delay_seconds": 0,
+                    "target_language": "en",
+                    "sources": [
+                        {
+                            "title": "Original scoop",
+                            "body": "Exclusive details emerge for review.",
+                            "author": "investigator",
+                        },
+                        {
+                            "title": "Original scoop",
+                            "body": "Exclusive details emerge for review.",
+                            "author": "mirror",
+                        },
+                        {
+                            "title": "Deepfake investigation",
+                            "body": "Deepfake footage triggers alarm and scrutiny",
+                            "author": "analyst",
+                        },
+                    ],
+                }
+            }
+        ),
+    )
+    load_workspace_configs.cache_clear()
+    get_settings.cache_clear()
+
+    result = run_workspace_pipeline_sync("gamma")
+
+    assert result["workspace"] == "gamma"
+    assert result["published"] == 1
+    assert result["rejected"] == 2
+    assert result["duplicates"] == 1
+    assert result["fake_detected"] == 1
+
+    records = (
+        db_session.execute(
+            select(ProcessingRecord).where(ProcessingRecord.workspace == "gamma")
+        )
+        .scalars()
+        .all()
+    )
+    assert len(records) == 3
+    duplicate_records = [record for record in records if "::" in record.reference]
+    assert duplicate_records, "expected a duplicate record reference"
+    assert any(record.outcome is ProcessingOutcome.PUBLISH for record in records)
+    assert sum(1 for record in records if record.outcome is ProcessingOutcome.REJECT) == 2
+    assert any(record.fake_detected for record in records)
+
+    metrics_blob = generate_latest()
+    assert b'pipeline_duplicates_total{workspace="gamma"}' in metrics_blob
+    assert b'pipeline_rejected_items_total{workspace="gamma"}' in metrics_blob
+    assert b'pipeline_fake_detections_total{workspace="gamma"}' in metrics_blob
+
+    alerting_client.reset()
+    load_workspace_configs.cache_clear()
+    get_settings.cache_clear()

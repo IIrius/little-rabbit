@@ -35,6 +35,21 @@ PIPELINE_MODERATION_REQUESTS_COUNTER = Counter(
     "Number of moderation requests created by the pipeline per workspace.",
     labelnames=("workspace",),
 )
+PIPELINE_DUPLICATE_COUNTER = Counter(
+    "pipeline_duplicates_total",
+    "Number of items skipped due to deduplication per workspace.",
+    labelnames=("workspace",),
+)
+PIPELINE_REJECTED_COUNTER = Counter(
+    "pipeline_rejected_items_total",
+    "Number of items rejected by the pipeline per workspace.",
+    labelnames=("workspace",),
+)
+PIPELINE_FAKE_DETECTIONS_COUNTER = Counter(
+    "pipeline_fake_detections_total",
+    "Number of fake content detections flagged by the pipeline per workspace.",
+    labelnames=("workspace",),
+)
 
 
 def record_pipeline_success(
@@ -43,6 +58,9 @@ def record_pipeline_success(
     published: int,
     delivered: int = 0,
     moderated: int = 0,
+    rejected: int = 0,
+    duplicates: int = 0,
+    fake_detected: int = 0,
 ) -> None:
     """Record metrics for a successful pipeline execution."""
 
@@ -52,6 +70,12 @@ def record_pipeline_success(
         PIPELINE_TELEGRAM_MESSAGES_COUNTER.labels(workspace=workspace).inc(delivered)
     if moderated:
         PIPELINE_MODERATION_REQUESTS_COUNTER.labels(workspace=workspace).inc(moderated)
+    if duplicates:
+        PIPELINE_DUPLICATE_COUNTER.labels(workspace=workspace).inc(duplicates)
+    if rejected:
+        PIPELINE_REJECTED_COUNTER.labels(workspace=workspace).inc(rejected)
+    if fake_detected:
+        PIPELINE_FAKE_DETECTIONS_COUNTER.labels(workspace=workspace).inc(fake_detected)
     PIPELINE_DURATION.labels(workspace=workspace).observe(duration)
     PIPELINE_LAST_RUN.labels(workspace=workspace).set(time.time())
 
@@ -71,6 +95,9 @@ __all__ = [
     "PIPELINE_LAST_RUN",
     "PIPELINE_TELEGRAM_MESSAGES_COUNTER",
     "PIPELINE_MODERATION_REQUESTS_COUNTER",
+    "PIPELINE_DUPLICATE_COUNTER",
+    "PIPELINE_REJECTED_COUNTER",
+    "PIPELINE_FAKE_DETECTIONS_COUNTER",
     "record_pipeline_failure",
     "record_pipeline_success",
 ]
