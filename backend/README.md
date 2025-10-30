@@ -11,3 +11,9 @@ poetry run uvicorn app.main:app --reload
 ```
 
 Refer to the repository root `README.md` for more information.
+
+## Telegram integration
+
+The FastAPI API exposes endpoints to register Telegram bots per workspace and
+bind channels. Follow the step-by-step guide in `../docs/TELEGRAM.md` to set up
+bot tokens and configure delivery strategies.

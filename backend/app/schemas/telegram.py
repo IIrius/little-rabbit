@@ -1,0 +1,44 @@
+from __future__ import annotations
+
+from typing import List, Optional
+
+from pydantic import BaseModel, Field, HttpUrl, model_validator
+
+from app.telegram.models import DeliveryStrategy, WorkspaceTelegramConfig
+
+
+class RegisterBotRequest(BaseModel):
+    token: str = Field(..., min_length=1)
+    strategy: DeliveryStrategy
+    webhook_url: Optional[HttpUrl] = None
+    allowed_channel_ids: List[str] = Field(default_factory=list)
+
+    @model_validator(mode="after")
+    def _validate_webhook_requirements(self) -> "RegisterBotRequest":
+        if self.strategy is DeliveryStrategy.WEBHOOK and self.webhook_url is None:
+            raise ValueError("webhook_url is required when strategy is webhook")
+        return self
+
+
+class BindChannelRequest(BaseModel):
+    channel_id: str = Field(..., min_length=1)
+
+
+class WorkspaceTelegramConfigResponse(BaseModel):
+    workspace_id: str
+    strategy: DeliveryStrategy
+    webhook_url: Optional[HttpUrl] = None
+    allowed_channel_ids: List[str] = Field(default_factory=list)
+    bound_channel_id: Optional[str] = None
+
+    @classmethod
+    def from_config(
+        cls, config: WorkspaceTelegramConfig
+    ) -> "WorkspaceTelegramConfigResponse":
+        return cls(
+            workspace_id=config.workspace_id,
+            strategy=config.strategy,
+            webhook_url=config.webhook_url,
+            allowed_channel_ids=sorted(config.allowed_channel_ids),
+            bound_channel_id=config.bound_channel_id,
+        )

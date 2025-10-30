@@ -2,9 +2,12 @@ from typing import Final
 
 from fastapi import FastAPI
 
+from app.api.telegram import router as telegram_router
+
 APP_TITLE: Final[str] = "Backend API"
 
 app = FastAPI(title=APP_TITLE)
+app.include_router(telegram_router)
 
 
 @app.get("/", tags=["root"])
