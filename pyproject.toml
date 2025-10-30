@@ -1,3 +1,4 @@
+# See docs/development/tooling.md for details on how these unified settings are maintained.
 [tool.black]
 line-length = 88
 target-version = ["py311"]
