@@ -67,7 +67,9 @@ def classify_article(title: str, summary: str, body: str) -> ClassificationOutco
     """Apply a heuristic classifier to determine moderation needs."""
 
     text = f"{title} {summary} {body}".lower()
-    matched_flags = sorted({keyword for keyword in _FLAGGED_KEYWORDS if keyword in text})
+    matched_flags = sorted(
+        {keyword for keyword in _FLAGGED_KEYWORDS if keyword in text}
+    )
     score = 0.25 + 0.1 * len(matched_flags)
 
     if any(phrase in text for phrase in _HIGH_RISK_PHRASES):
@@ -92,7 +94,9 @@ def classify_article(title: str, summary: str, body: str) -> ClassificationOutco
     )
 
 
-def get_active_telegram_channels(session: Session, workspace: str) -> list[WorkspaceTelegramChannel]:
+def get_active_telegram_channels(
+    session: Session, workspace: str
+) -> list[WorkspaceTelegramChannel]:
     """Return all active telegram channels for the workspace."""
 
     result = session.execute(

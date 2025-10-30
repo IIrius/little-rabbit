@@ -9,9 +9,7 @@ import sys
 import pytest
 from fastapi.testclient import TestClient
 
-os.environ.setdefault(
-    "ENCRYPTION_KEY", "BYPHtIuWGHNirMRHkRkNvztNFVQVw1Gc7YCOUMIqFZs="
-)
+os.environ.setdefault("ENCRYPTION_KEY", "BYPHtIuWGHNirMRHkRkNvztNFVQVw1Gc7YCOUMIqFZs=")
 os.environ.setdefault("RATE_LIMIT_MAX_REQUESTS", "100")
 os.environ.setdefault("RATE_LIMIT_WINDOW_SECONDS", "60")
 os.environ.setdefault("AUTH_SECRET_KEY", "test-secret-key")

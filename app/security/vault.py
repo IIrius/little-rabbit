@@ -40,7 +40,9 @@ class VaultClient:
                     url=self.url, token=self.token, verify=self.verify
                 )
             except Exception as exc:  # pragma: no cover - network errors
-                raise VaultIntegrationError("Unable to initialise Vault client") from exc
+                raise VaultIntegrationError(
+                    "Unable to initialise Vault client"
+                ) from exc
 
     def get_secret(self, path: str, key: str, default: str | None = None) -> str:
         """Return a secret value from the configured source."""

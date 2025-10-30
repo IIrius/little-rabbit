@@ -30,7 +30,9 @@ class WorkspaceMembership(BaseModel):
     workspace: str
     role: str
 
-    _sanitize_workspace = validator("workspace", pre=True, allow_reuse=True)(sanitize_text)
+    _sanitize_workspace = validator("workspace", pre=True, allow_reuse=True)(
+        sanitize_text
+    )
     _sanitize_role = validator("role", pre=True, allow_reuse=True)(sanitize_text)
 
     class Config:
@@ -45,7 +47,9 @@ class UserPublic(BaseModel):
     default_workspace: Optional[str] = None
     workspaces: List[WorkspaceMembership] = Field(default_factory=list)
 
-    _sanitize_full_name = validator("full_name", pre=True, allow_reuse=True)(sanitize_text)
+    _sanitize_full_name = validator("full_name", pre=True, allow_reuse=True)(
+        sanitize_text
+    )
     _sanitize_role = validator("role", pre=True, allow_reuse=True)(sanitize_text)
     _sanitize_default_workspace = validator(
         "default_workspace", pre=True, allow_reuse=True
@@ -220,10 +224,19 @@ class ModerationRequestRead(BaseModel):
     content_excerpt: Optional[str]
     ai_analysis: ModerationAIAnalysis
 
-    _sanitize_workspace = validator("workspace", pre=True, allow_reuse=True)(sanitize_text)
-    _sanitize_reference = validator("reference", pre=True, allow_reuse=True)(sanitize_text)
-    _sanitize_title = validator("content_title", pre=True, allow_reuse=True)(sanitize_text)
-    _sanitize_excerpt = validator("content_excerpt", pre=True, allow_reuse=True)(sanitize_text)
+    _sanitize_workspace = validator("workspace", pre=True, allow_reuse=True)(
+        sanitize_text
+    )
+    _sanitize_reference = validator("reference", pre=True, allow_reuse=True)(
+        sanitize_text
+    )
+    _sanitize_title = validator("content_title", pre=True, allow_reuse=True)(
+        sanitize_text
+    )
+    _sanitize_excerpt = validator("content_excerpt", pre=True, allow_reuse=True)(
+        sanitize_text
+    )
+
 
 class WorkspaceSourceBase(BaseModel):
     name: constr(strip_whitespace=True, min_length=1, max_length=120)
@@ -298,12 +311,17 @@ class ModerationDecisionRead(BaseModel):
     decided_by: Optional[str]
     reason: Optional[str]
 
-    _sanitize_decision = validator("decision", pre=True, allow_reuse=True)(sanitize_text)
-    _sanitize_decided_by = validator("decided_by", pre=True, allow_reuse=True)(sanitize_text)
+    _sanitize_decision = validator("decision", pre=True, allow_reuse=True)(
+        sanitize_text
+    )
+    _sanitize_decided_by = validator("decided_by", pre=True, allow_reuse=True)(
+        sanitize_text
+    )
     _sanitize_reason = validator("reason", pre=True, allow_reuse=True)(sanitize_text)
 
     class Config:
         orm_mode = True
+
 
 class WorkspaceProxyBase(BaseModel):
     name: constr(strip_whitespace=True, min_length=1, max_length=120)

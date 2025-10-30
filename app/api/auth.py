@@ -189,7 +189,9 @@ def current_user(
 ) -> schemas.UserPublic:
     user = session.get(models.User, current.id)
     if user is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
+        )
     return _user_payload(user)
 
 
@@ -201,7 +203,9 @@ def select_workspace(
 ) -> schemas.UserPublic:
     user = session.get(models.User, current_user.id)
     if user is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
+        )
     ensure_workspace_access(user, payload.workspace)
     user.default_workspace = payload.workspace
     session.commit()
@@ -216,7 +220,9 @@ def list_user_workspaces(
 ) -> dict[str, list[schemas.WorkspaceMembership]]:
     user = session.get(models.User, current_user.id)
     if user is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
+        )
     return {"workspaces": _user_memberships(user)}
 
 

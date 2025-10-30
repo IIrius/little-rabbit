@@ -35,7 +35,9 @@ class User(Base):
     __tablename__ = "users"
 
     id: Mapped[int] = mapped_column(primary_key=True, index=True)
-    email: Mapped[str] = mapped_column(String(255), unique=True, nullable=False, index=True)
+    email: Mapped[str] = mapped_column(
+        String(255), unique=True, nullable=False, index=True
+    )
     full_name: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
     hashed_password: Mapped[str] = mapped_column(String(255), nullable=False)
     role: Mapped[UserRole] = mapped_column(
@@ -110,7 +112,9 @@ class RefreshToken(Base):
     issued_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False, server_default=func.now()
     )
-    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    expires_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False
+    )
     revoked: Mapped[bool] = mapped_column(
         Boolean,
         nullable=False,
@@ -131,7 +135,9 @@ class PasswordResetToken(Base):
         ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True
     )
     token_hash: Mapped[str] = mapped_column(String(128), nullable=False, unique=True)
-    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    expires_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False
+    )
     used_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), nullable=True
     )

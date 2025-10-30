@@ -35,10 +35,7 @@ logger = get_logger("pipeline.tasks")
 
 
 def _slugify(value: str) -> str:
-    processed = [
-        char.lower() if char.isalnum() else "-"
-        for char in value.strip()
-    ]
+    processed = [char.lower() if char.isalnum() else "-" for char in value.strip()]
     slug = "".join(processed)
     slug = "-".join(filter(None, slug.split("-")))
     if not slug:

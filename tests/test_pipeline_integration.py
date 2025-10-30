@@ -42,7 +42,9 @@ def test_pipeline_publishes_sample_news(db_session) -> None:
 
     assert "dev" in DASHBOARD_REGISTRY
 
-    failure_events = [event for event in alerting_client.events if event.severity == "critical"]
+    failure_events = [
+        event for event in alerting_client.events if event.severity == "critical"
+    ]
     assert not failure_events
 
 
@@ -122,9 +124,13 @@ def test_pipeline_telegram_publishing_and_moderation(
     assert delivered_chats == {channel_primary.chat_id, channel_secondary.chat_id}
     assert all("Safe launch update" in message for _, message in publisher.messages)
 
-    requests = db_session.execute(
-        select(ModerationRequest).where(ModerationRequest.workspace == "beta")
-    ).scalars().all()
+    requests = (
+        db_session.execute(
+            select(ModerationRequest).where(ModerationRequest.workspace == "beta")
+        )
+        .scalars()
+        .all()
+    )
     assert len(requests) == 1
     moderation_request = requests[0]
     assert moderation_request.status == ModerationStatus.PENDING

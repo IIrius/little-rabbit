@@ -21,10 +21,9 @@ def test_item_creation_sanitizes_and_encrypts(client, db_session) -> None:
     assert body["name"] == "alert(1)Widget"
     assert body["description"] == "Important description"
 
-    item = (
-        db_session.execute(select(models.Item).where(models.Item.id == body["id"]))
-        .scalar_one()
-    )
+    item = db_session.execute(
+        select(models.Item).where(models.Item.id == body["id"])
+    ).scalar_one()
     assert item.description != body["description"]
 
 
