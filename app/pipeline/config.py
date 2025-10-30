@@ -37,6 +37,7 @@ class WorkspacePipelineConfig(BaseModel):
     retry_delay_seconds: int = Field(30, ge=0)
     sources: List[RawNewsItem] = Field(default_factory=list)
     tags: List[str] = Field(default_factory=list)
+    target_language: str = Field("en", min_length=2, max_length=8)
 
     @validator("workspace")
     def _workspace_not_blank(cls, value: str) -> str:
@@ -44,6 +45,13 @@ class WorkspacePipelineConfig(BaseModel):
         if not value:
             raise ValueError("workspace identifier cannot be blank")
         return value
+
+    @validator("target_language")
+    def _target_language_not_blank(cls, value: str) -> str:
+        value = value.strip()
+        if not value:
+            raise ValueError("target language cannot be blank")
+        return value.lower()
 
     @validator("tags", pre=True)
     def _ensure_tags(cls, value: object) -> List[str]:
@@ -64,6 +72,7 @@ DEFAULT_PIPELINE_CONFIG: Dict[str, dict[str, object]] = {
         "retry_attempts": 3,
         "retry_delay_seconds": 10,
         "tags": ["dev", "sample"],
+        "target_language": "en",
         "sources": [
             {
                 "title": "Celery orchestrates the dev workspace pipeline",

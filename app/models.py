@@ -264,6 +264,14 @@ class PipelineRunStatus(str, Enum):
     FAILURE = "failure"
 
 
+class ProcessingOutcome(StrEnum):
+    """Final disposition assigned to processed content."""
+
+    PUBLISH = "publish"
+    MODERATE = "moderate"
+    REJECT = "reject"
+
+
 class WorkspaceSource(Base):
     """Configurable content source for a workspace."""
 
@@ -367,4 +375,56 @@ class PipelineRun(Base):
     )
     finished_at: Mapped[Optional[datetime]] = mapped_column(
         DateTime(timezone=True), nullable=True
+    )
+
+
+class ProcessingRecord(Base):
+    """Persisted processing outcomes for deduplication and audit."""
+
+    __tablename__ = "processing_records"
+    __table_args__ = (
+        UniqueConstraint(
+            "workspace", "reference", name="uq_processing_workspace_reference"
+        ),
+    )
+
+    id: Mapped[int] = mapped_column(primary_key=True, index=True)
+    workspace: Mapped[str] = mapped_column(String(64), nullable=False, index=True)
+    reference: Mapped[str] = mapped_column(String(255), nullable=False)
+    fingerprint: Mapped[str] = mapped_column(String(128), nullable=False, index=True)
+    outcome: Mapped[ProcessingOutcome] = mapped_column(
+        SAEnum(ProcessingOutcome, name="processing_outcome"), nullable=False
+    )
+    status_reason: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
+    dedup_reason: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
+    translation_language: Mapped[Optional[str]] = mapped_column(String(8), nullable=True)
+    fake_detected: Mapped[bool] = mapped_column(
+        Boolean,
+        nullable=False,
+        default=False,
+        server_default=expression.false(),
+    )
+    fake_confidence: Mapped[float] = mapped_column(
+        Float,
+        nullable=False,
+        default=0.0,
+        server_default="0",
+    )
+    classification_score: Mapped[float] = mapped_column(
+        Float,
+        nullable=False,
+        default=0.0,
+        server_default="0",
+    )
+    classification_summary: Mapped[Optional[str]] = mapped_column(Text(), nullable=True)
+    classification_flags: Mapped[Optional[str]] = mapped_column(Text(), nullable=True)
+    logs: Mapped[Optional[str]] = mapped_column(Text(), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now()
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        nullable=False,
+        server_default=func.now(),
+        onupdate=func.now(),
     )

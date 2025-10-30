@@ -61,14 +61,20 @@ def setup_database() -> Generator[None, None, None]:
 
     from app.pipeline.config import load_workspace_configs  # noqa: E402
     from app.services import telegram as telegram_service  # noqa: E402
+    from app.services.deepseek import DeepSeekClient, set_deepseek_client  # noqa: E402
+    from app.services.memory import MemoryService, set_memory_service  # noqa: E402
 
     load_workspace_configs.cache_clear()
     get_settings.cache_clear()
     telegram_service.set_telegram_publisher(None)
+    set_deepseek_client(DeepSeekClient())
+    set_memory_service(MemoryService())
 
     yield
 
     telegram_service.set_telegram_publisher(None)
+    set_deepseek_client(None)
+    set_memory_service(None)
     load_workspace_configs.cache_clear()
     get_settings.cache_clear()
 
