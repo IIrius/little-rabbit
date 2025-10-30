@@ -97,6 +97,12 @@ Visit <http://127.0.0.1:8000/docs> for the interactive OpenAPI UI.
 
 ### Celery worker
 
+chore-centralize-tooling-config
+Tooling dependencies are pinned in `requirements-dev.txt`, which layers on top of `requirements.txt` so local runs match CI.
+
+Install pre-commit hooks to run the suite automatically:
+
+main
 ```bash
 celery -A app.celery_app.celery_app worker --loglevel=info
 ```
@@ -104,7 +110,13 @@ celery -A app.celery_app.celery_app worker --loglevel=info
 ### Database migrations
 
 ```bash
+chore-centralize-tooling-config
+ruff check app tests alembic
+black app tests alembic
+mypy app tests alembic
+
 alembic upgrade head
+main
 ```
 
 ### Docker workflow

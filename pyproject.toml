@@ -6,6 +6,7 @@ target-version = ["py311"]
 [tool.ruff]
 line-length = 88
 target-version = "py311"
+src = ["app", "tests", "alembic"]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "B"]
@@ -27,5 +28,5 @@ init_typed = true
 warn_required_dynamic_aliases = true
 
 [tool.pytest.ini_options]
-pythonpath = ["app"]
+pythonpath = ["."]
 testpaths = ["tests"]
