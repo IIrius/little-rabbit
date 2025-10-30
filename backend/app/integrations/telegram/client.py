@@ -9,6 +9,8 @@ from .exceptions import (
     TelegramPermissionError,
     TelegramWorkspaceNotRegisteredError,
 )
+from .models import DeliveryStrategy, WorkspaceTelegramConfig
+from .storage import WorkspaceTelegramStore
 
 try:  # pragma: no cover - dependency resolution is environment specific
     from telegram import Bot as _TelegramBot  # type: ignore[attr-defined]
@@ -19,9 +21,6 @@ except ModuleNotFoundError:  # pragma: no cover - exercised in unit tests via pa
 
 Bot = _TelegramBot  # Backwards compatibility alias used by tests
 TelegramError = _TelegramError
-
-from .models import DeliveryStrategy, WorkspaceTelegramConfig
-from .storage import WorkspaceTelegramStore
 
 
 def _create_bot(token: str) -> Any:
