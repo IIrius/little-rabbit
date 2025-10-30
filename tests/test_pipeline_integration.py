@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import json
 
+from prometheus_client import generate_latest
 from sqlalchemy import select
 
 from app.config import get_settings
@@ -17,7 +18,6 @@ from app.observability.monitoring import DASHBOARD_REGISTRY
 from app.pipeline.config import load_workspace_configs
 from app.pipeline.runner import run_workspace_pipeline_sync
 from app.services import telegram as telegram_service
-from prometheus_client import generate_latest
 
 
 def test_pipeline_publishes_sample_news(db_session) -> None:
@@ -42,7 +42,9 @@ def test_pipeline_publishes_sample_news(db_session) -> None:
 
     assert "dev" in DASHBOARD_REGISTRY
 
-    failure_events = [event for event in alerting_client.events if event.severity == "critical"]
+    failure_events = [
+        event for event in alerting_client.events if event.severity == "critical"
+    ]
     assert not failure_events
 
 
@@ -65,13 +67,17 @@ def test_pipeline_telegram_publishing_and_moderation(
                     "sources": [
                         {
                             "title": "Safe launch update",
-                            "body": "New features shipping soon and suitable for broadcast.",
+                            "body": (
+                                "New features shipping soon and "
+                                "suitable for broadcast."
+                            ),
                             "author": "automation-bot",
                         },
                         {
                             "title": "Policy breach reported",
                             "body": (
-                                "Unsafe content triggers a policy breach and requires human review. "
+                                "Unsafe content triggers a policy breach "
+                                "and requires human review. "
                                 "Mark for moderation."
                             ),
                             "author": "watchdog",
@@ -122,9 +128,13 @@ def test_pipeline_telegram_publishing_and_moderation(
     assert delivered_chats == {channel_primary.chat_id, channel_secondary.chat_id}
     assert all("Safe launch update" in message for _, message in publisher.messages)
 
-    requests = db_session.execute(
-        select(ModerationRequest).where(ModerationRequest.workspace == "beta")
-    ).scalars().all()
+    requests = (
+        db_session.execute(
+            select(ModerationRequest).where(ModerationRequest.workspace == "beta")
+        )
+        .scalars()
+        .all()
+    )
     assert len(requests) == 1
     moderation_request = requests[0]
     assert moderation_request.status == ModerationStatus.PENDING

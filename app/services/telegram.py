@@ -74,7 +74,9 @@ class TelegramPublisher:
             )
             raise TelegramPublishingError(str(exc)) from exc
         except ValueError as exc:  # pragma: no cover - invalid response payload
-            logger.exception("telegram response parsing failed", extra={"chat_id": chat_id})
+            logger.exception(
+                "telegram response parsing failed", extra={"chat_id": chat_id}
+            )
             raise TelegramPublishingError("invalid telegram response") from exc
 
         ok = bool(data.get("ok", response.status_code < 400))

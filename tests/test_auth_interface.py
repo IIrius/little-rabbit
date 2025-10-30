@@ -165,7 +165,7 @@ def test_auth_portal_template(client: TestClient) -> None:
     response = client.get("/auth")
     assert response.status_code == 200
     html = response.text
-    assert "id=\"login-form\"" in html
+    assert 'id="login-form"' in html
     assert "Register" in html
     assert "Reset token" in html
 

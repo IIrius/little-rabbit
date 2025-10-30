@@ -89,7 +89,9 @@ def _serialize_run_event(run: models.PipelineRun) -> dict[str, object]:
     }
 
 
-def _snapshot_payload(workspace: str, runs: List[models.PipelineRun]) -> dict[str, object]:
+def _snapshot_payload(
+    workspace: str, runs: List[models.PipelineRun]
+) -> dict[str, object]:
     return {
         "event": "snapshot",
         "workspace": workspace,
@@ -162,7 +164,9 @@ async def _execute_pipeline_run(run_id: int, workspace: str, app: FastAPI) -> No
             run.message = str(exc)
             session.commit()
             session.refresh(run)
-            await pipeline_status_broadcaster.publish(workspace, _serialize_run_event(run))
+            await pipeline_status_broadcaster.publish(
+                workspace, _serialize_run_event(run)
+            )
             return
 
         run.status = models.PipelineRunStatus.SUCCESS
@@ -257,7 +261,10 @@ def moderation_queue(
     result = session.execute(
         select(models.ModerationRequest)
         .where(models.ModerationRequest.status == models.ModerationStatus.PENDING)
-        .order_by(models.ModerationRequest.submitted_at.asc(), models.ModerationRequest.id.asc())
+        .order_by(
+            models.ModerationRequest.submitted_at.asc(),
+            models.ModerationRequest.id.asc(),
+        )
     )
     requests = result.scalars().all()
     return [
@@ -278,7 +285,9 @@ def moderation_request_details(
 
     request = session.get(models.ModerationRequest, request_id)
     if request is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Moderation request not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Moderation request not found"
+        )
     return schemas.ModerationRequestRead(**moderation_request_to_dict(request))
 
 
@@ -296,9 +305,14 @@ def decide_moderation_request(
 
     request = session.get(models.ModerationRequest, request_id)
     if request is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Moderation request not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Moderation request not found"
+        )
     if request.status != models.ModerationStatus.PENDING:
-        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Moderation request already resolved")
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Moderation request already resolved",
+        )
 
     decision_enum = (
         models.ModerationStatus.APPROVED
@@ -440,27 +454,28 @@ def moderation_history(
 
     if status_filter:
         normalized = (sanitize_text(status_filter) or "").lower()
-        valid_states = {models.ModerationStatus.APPROVED.value, models.ModerationStatus.REJECTED.value}
+        valid_states = {
+            models.ModerationStatus.APPROVED.value,
+            models.ModerationStatus.REJECTED.value,
+        }
         if normalized not in valid_states:
             raise HTTPException(
                 status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
                 detail="Invalid status filter",
             )
-        query = query.where(models.ModerationDecision.decision == models.ModerationStatus(normalized))
+        query = query.where(
+            models.ModerationDecision.decision == models.ModerationStatus(normalized)
+        )
 
     if workspace:
         workspace_clean = sanitize_text(workspace)
         if workspace_clean:
-            query = query.where(
-                models.ModerationRequest.workspace == workspace_clean
-            )
+            query = query.where(models.ModerationRequest.workspace == workspace_clean)
 
     if actor:
         actor_clean = sanitize_text(actor)
         if actor_clean:
-            query = query.where(
-                models.ModerationDecision.decided_by == actor_clean
-            )
+            query = query.where(models.ModerationDecision.decided_by == actor_clean)
 
     result = session.execute(query.limit(limit).offset(offset))
     decisions = result.scalars().all()
@@ -495,7 +510,10 @@ def list_workspace_sources(
         .where(models.WorkspaceSource.workspace == workspace)
         .order_by(models.WorkspaceSource.name)
     )
-    return [schemas.WorkspaceSourceRead.from_orm(source) for source in result.scalars().all()]
+    return [
+        schemas.WorkspaceSourceRead.from_orm(source)
+        for source in result.scalars().all()
+    ]
 
 
 @router.post(
@@ -553,7 +571,9 @@ def update_workspace_source(
 ) -> schemas.WorkspaceSourceRead:
     source = session.get(models.WorkspaceSource, source_id)
     if source is None or source.workspace != workspace:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Source not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Source not found"
+        )
 
     duplicate = session.execute(
         select(models.WorkspaceSource).where(
@@ -590,7 +610,9 @@ def delete_workspace_source(
 ) -> Response:
     source = session.get(models.WorkspaceSource, source_id)
     if source is None or source.workspace != workspace:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Source not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Source not found"
+        )
 
     session.delete(source)
     session.commit()
@@ -613,7 +635,9 @@ def list_workspace_proxies(
         .where(models.WorkspaceProxy.workspace == workspace)
         .order_by(models.WorkspaceProxy.name)
     )
-    return [schemas.WorkspaceProxyRead.from_orm(proxy) for proxy in result.scalars().all()]
+    return [
+        schemas.WorkspaceProxyRead.from_orm(proxy) for proxy in result.scalars().all()
+    ]
 
 
 @router.post(
@@ -662,9 +686,7 @@ def create_workspace_proxy(
     session.add(proxy)
     session.commit()
     session.refresh(proxy)
-    record_audit_event(
-        "workspace.proxy.create", workspace=workspace, proxy_id=proxy.id
-    )
+    record_audit_event("workspace.proxy.create", workspace=workspace, proxy_id=proxy.id)
     return schemas.WorkspaceProxyRead.from_orm(proxy)
 
 
@@ -681,7 +703,9 @@ def update_workspace_proxy(
 ) -> schemas.WorkspaceProxyRead:
     proxy = session.get(models.WorkspaceProxy, proxy_id)
     if proxy is None or proxy.workspace != workspace:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Proxy not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Proxy not found"
+        )
 
     name_conflict = session.execute(
         select(models.WorkspaceProxy).where(
@@ -716,9 +740,7 @@ def update_workspace_proxy(
     proxy.is_active = payload.is_active
     session.commit()
     session.refresh(proxy)
-    record_audit_event(
-        "workspace.proxy.update", workspace=workspace, proxy_id=proxy.id
-    )
+    record_audit_event("workspace.proxy.update", workspace=workspace, proxy_id=proxy.id)
     return schemas.WorkspaceProxyRead.from_orm(proxy)
 
 
@@ -732,13 +754,13 @@ def delete_workspace_proxy(
 ) -> Response:
     proxy = session.get(models.WorkspaceProxy, proxy_id)
     if proxy is None or proxy.workspace != workspace:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Proxy not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Proxy not found"
+        )
 
     session.delete(proxy)
     session.commit()
-    record_audit_event(
-        "workspace.proxy.delete", workspace=workspace, proxy_id=proxy_id
-    )
+    record_audit_event("workspace.proxy.delete", workspace=workspace, proxy_id=proxy_id)
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
@@ -942,27 +964,43 @@ async def trigger_pipeline_run(
 def workspace_dashboard(
     workspace: str, session: Session = Depends(get_session)
 ) -> schemas.WorkspaceDashboardSnapshot:
-    sources = session.execute(
-        select(models.WorkspaceSource)
-        .where(models.WorkspaceSource.workspace == workspace)
-        .order_by(models.WorkspaceSource.name)
-    ).scalars().all()
-    proxies = session.execute(
-        select(models.WorkspaceProxy)
-        .where(models.WorkspaceProxy.workspace == workspace)
-        .order_by(models.WorkspaceProxy.name)
-    ).scalars().all()
-    channels = session.execute(
-        select(models.WorkspaceTelegramChannel)
-        .where(models.WorkspaceTelegramChannel.workspace == workspace)
-        .order_by(models.WorkspaceTelegramChannel.name)
-    ).scalars().all()
-    runs = session.execute(
-        select(models.PipelineRun)
-        .where(models.PipelineRun.workspace == workspace)
-        .order_by(models.PipelineRun.created_at.desc())
-        .limit(20)
-    ).scalars().all()
+    sources = (
+        session.execute(
+            select(models.WorkspaceSource)
+            .where(models.WorkspaceSource.workspace == workspace)
+            .order_by(models.WorkspaceSource.name)
+        )
+        .scalars()
+        .all()
+    )
+    proxies = (
+        session.execute(
+            select(models.WorkspaceProxy)
+            .where(models.WorkspaceProxy.workspace == workspace)
+            .order_by(models.WorkspaceProxy.name)
+        )
+        .scalars()
+        .all()
+    )
+    channels = (
+        session.execute(
+            select(models.WorkspaceTelegramChannel)
+            .where(models.WorkspaceTelegramChannel.workspace == workspace)
+            .order_by(models.WorkspaceTelegramChannel.name)
+        )
+        .scalars()
+        .all()
+    )
+    runs = (
+        session.execute(
+            select(models.PipelineRun)
+            .where(models.PipelineRun.workspace == workspace)
+            .order_by(models.PipelineRun.created_at.desc())
+            .limit(20)
+        )
+        .scalars()
+        .all()
+    )
 
     counts = schemas.WorkspaceDashboardCounts(
         sources=len(sources),
@@ -977,25 +1015,32 @@ def workspace_dashboard(
         sources=[schemas.WorkspaceSourceRead.from_orm(source) for source in sources],
         proxies=[schemas.WorkspaceProxyRead.from_orm(proxy) for proxy in proxies],
         telegram_channels=[
-            schemas.WorkspaceTelegramChannelRead.from_orm(channel) for channel in channels
+            schemas.WorkspaceTelegramChannelRead.from_orm(channel)
+            for channel in channels
         ],
         pipeline_runs=[schemas.PipelineRunRead.from_orm(run) for run in runs],
     )
 
 
 @router.websocket("/workspaces/{workspace}/pipeline/status")
-async def workspace_pipeline_status_stream(websocket: WebSocket, workspace: str) -> None:
+async def workspace_pipeline_status_stream(
+    websocket: WebSocket, workspace: str
+) -> None:
     await websocket.accept()
     queue = await pipeline_status_broadcaster.subscribe(workspace)
 
     try:
         with _session_scope(websocket.app) as session:
-            runs = session.execute(
-                select(models.PipelineRun)
-                .where(models.PipelineRun.workspace == workspace)
-                .order_by(models.PipelineRun.created_at.desc())
-                .limit(20)
-            ).scalars().all()
+            runs = (
+                session.execute(
+                    select(models.PipelineRun)
+                    .where(models.PipelineRun.workspace == workspace)
+                    .order_by(models.PipelineRun.created_at.desc())
+                    .limit(20)
+                )
+                .scalars()
+                .all()
+            )
             await websocket.send_json(_snapshot_payload(workspace, runs))
 
             receiver = asyncio.create_task(websocket.receive_text())

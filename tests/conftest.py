@@ -1,33 +1,30 @@
 """Test fixtures for the application."""
 from __future__ import annotations
 
-from collections.abc import Generator
-from pathlib import Path
 import os
 import sys
+from collections.abc import Generator
+from pathlib import Path
 
 import pytest
 from fastapi.testclient import TestClient
-
-os.environ.setdefault(
-    "ENCRYPTION_KEY", "BYPHtIuWGHNirMRHkRkNvztNFVQVw1Gc7YCOUMIqFZs="
-)
-os.environ.setdefault("RATE_LIMIT_MAX_REQUESTS", "100")
-os.environ.setdefault("RATE_LIMIT_WINDOW_SECONDS", "60")
-os.environ.setdefault("AUTH_SECRET_KEY", "test-secret-key")
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
+from sqlalchemy.pool import StaticPool
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
-from app.config import get_settings
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
-from sqlalchemy.pool import StaticPool
+from app import models  # noqa: E402,F401
+from app.config import get_settings  # noqa: E402
+from app.database import Base, get_session  # noqa: E402
+from app.main import app  # noqa: E402
 
-from app.database import Base, get_session
-from app.main import app
-from app import models  # noqa: F401 - ensure models are loaded
+os.environ.setdefault("ENCRYPTION_KEY", "BYPHtIuWGHNirMRHkRkNvztNFVQVw1Gc7YCOUMIqFZs=")
+os.environ.setdefault("RATE_LIMIT_MAX_REQUESTS", "100")
+os.environ.setdefault("RATE_LIMIT_WINDOW_SECONDS", "60")
+os.environ.setdefault("AUTH_SECRET_KEY", "test-secret-key")
 
 SQLALCHEMY_TEST_URL = "sqlite+pysqlite:///:memory:"
 
@@ -61,15 +58,15 @@ def setup_database() -> Generator[None, None, None]:
     pipeline_tasks_module = None
     original_session_factory = None
     try:
-        from app.pipeline import tasks as pipeline_tasks_module  # type: ignore
+        from app.pipeline import tasks as pipeline_tasks_module  # noqa: E402
     except ImportError:
         pipeline_tasks_module = None
     else:
         original_session_factory = pipeline_tasks_module.SessionLocal
         pipeline_tasks_module.SessionLocal = TestingSessionLocal
 
-    from app.pipeline.config import load_workspace_configs
-    from app.services import telegram as telegram_service
+    from app.pipeline.config import load_workspace_configs  # noqa: E402
+    from app.services import telegram as telegram_service  # noqa: E402
 
     load_workspace_configs.cache_clear()
     get_settings.cache_clear()

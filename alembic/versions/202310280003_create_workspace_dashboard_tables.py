@@ -6,9 +6,9 @@ Create Date: 2023-10-28 00:03:00.000000
 """
 from __future__ import annotations
 
-from alembic import op
 import sqlalchemy as sa
 
+from alembic import op
 
 revision = "202310280003"
 down_revision = "202310280002"
@@ -91,9 +91,7 @@ def upgrade() -> None:
             server_default=sa.func.now(),
         ),
         sa.UniqueConstraint("workspace", "name", name="uq_workspace_proxy_name"),
-        sa.UniqueConstraint(
-            "workspace", "address", name="uq_workspace_proxy_address"
-        ),
+        sa.UniqueConstraint("workspace", "address", name="uq_workspace_proxy_address"),
     )
     op.create_index(
         "ix_workspace_proxies_workspace",
@@ -119,12 +117,8 @@ def upgrade() -> None:
             nullable=False,
             server_default=sa.func.now(),
         ),
-        sa.UniqueConstraint(
-            "workspace", "name", name="uq_workspace_telegram_name"
-        ),
-        sa.UniqueConstraint(
-            "workspace", "chat_id", name="uq_workspace_telegram_chat"
-        ),
+        sa.UniqueConstraint("workspace", "name", name="uq_workspace_telegram_name"),
+        sa.UniqueConstraint("workspace", "chat_id", name="uq_workspace_telegram_chat"),
     )
     op.create_index(
         "ix_workspace_telegram_channels_workspace",
@@ -169,9 +163,7 @@ def downgrade() -> None:
     op.drop_index("ix_workspace_proxies_workspace", table_name="workspace_proxies")
     op.drop_table("workspace_proxies")
 
-    op.drop_index(
-        "ix_workspace_sources_workspace", table_name="workspace_sources"
-    )
+    op.drop_index("ix_workspace_sources_workspace", table_name="workspace_sources")
     op.drop_table("workspace_sources")
 
     bind = op.get_bind()

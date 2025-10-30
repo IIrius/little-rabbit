@@ -3,8 +3,6 @@ from __future__ import annotations
 
 from collections.abc import Iterable
 
-import pytest
-
 from app import models
 from app.services.moderation import serialize_flags
 
@@ -147,6 +145,6 @@ def test_moderation_console_template_renders(client) -> None:
     assert response.status_code == 200
     body = response.text
     assert "Moderation Console" in body
-    assert "data-testid=\"moderation-console\"" in body
+    assert 'data-testid="moderation-console"' in body
     assert "/api/moderation/queue" in body
-    assert "id=\"history-panel\"" in body
+    assert 'id="history-panel"' in body

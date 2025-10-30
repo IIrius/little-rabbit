@@ -73,7 +73,9 @@ class AuditMiddleware(BaseHTTPMiddleware):
                 "duration_ms": round(duration_ms, 2),
                 "error": repr(exc),
             }
-            self._logger.info(json.dumps({"event": "request", **payload}, sort_keys=True))
+            self._logger.info(
+                json.dumps({"event": "request", **payload}, sort_keys=True)
+            )
             raise
 
         duration_ms = (time.perf_counter() - start) * 1000

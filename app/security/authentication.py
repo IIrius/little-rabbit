@@ -71,7 +71,9 @@ def _password_reset_expiry() -> timedelta:
     return timedelta(minutes=_settings.password_reset_token_expire_minutes)
 
 
-def create_access_token(user: models.User, *, workspace: str | None = None) -> tuple[str, datetime]:
+def create_access_token(
+    user: models.User, *, workspace: str | None = None
+) -> tuple[str, datetime]:
     now = _utcnow()
     expires_at = now + _access_token_expiry()
     payload: dict[str, Any] = {
@@ -168,7 +170,11 @@ def get_optional_user(
 
 def require_roles(*roles: models.UserRole) -> Callable[[models.User], models.User]:
     if not roles:
-        roles = (models.UserRole.OPERATOR, models.UserRole.ADMIN, models.UserRole.VIEWER)
+        roles = (
+            models.UserRole.OPERATOR,
+            models.UserRole.ADMIN,
+            models.UserRole.VIEWER,
+        )
 
     def dependency(user: models.User = Depends(get_current_user)) -> models.User:
         if user.role not in roles:
@@ -190,7 +196,9 @@ def ensure_workspace_access(user: models.User, workspace: str) -> None:
         )
 
 
-def find_refresh_token(session: Session, token_value: str) -> models.RefreshToken | None:
+def find_refresh_token(
+    session: Session, token_value: str
+) -> models.RefreshToken | None:
     token_hash = _hash_token(token_value)
     return session.execute(
         select(models.RefreshToken).where(models.RefreshToken.token_hash == token_hash)

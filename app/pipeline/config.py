@@ -107,9 +107,7 @@ def load_workspace_configs() -> Dict[str, WorkspacePipelineConfig]:
         try:
             raw_config = json.loads(overrides)
         except json.JSONDecodeError as exc:  # pragma: no cover - defensive logging
-            logger.warning(
-                "Failed to parse WORKSPACE_PIPELINES_JSON override: %s", exc
-            )
+            logger.warning("Failed to parse WORKSPACE_PIPELINES_JSON override: %s", exc)
         else:
             try:
                 entries = list(_iter_external_configs(raw_config))

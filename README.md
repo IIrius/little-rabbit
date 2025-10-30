@@ -1,172 +1,100 @@
-chore/init-monorepo-skeleton-fastapi-backend-poetry-precommit
-# Monorepo Skeleton
+# Deployment Service
 
-This repository provides a minimal monorepo skeleton with a FastAPI backend, and
-placeholders for future frontend, infrastructure, and documentation workspaces.
+A minimal FastAPI application demonstrating containerised deployment workflows, database migrations, and automated CI/CD.
 
 ## Repository layout
 
 ```
 .
-├── backend/   # FastAPI application managed with Poetry
-├── frontend/  # Reserved for frontend implementation
-├── infra/     # Reserved for infrastructure-as-code assets
-└── docs/      # Project documentation
+├── app/               # FastAPI application package (canonical backend)
+├── alembic/           # Database migration environment and versions
+├── docs/              # OpenAPI schema and security documentation
+├── frontend/          # Vite + React placeholder workspace
+├── infra/             # Infrastructure-as-code entry point
+├── k8s/               # Kubernetes manifests
+├── tests/             # Backend unit and integration tests
+├── Dockerfile         # Production image definition
+├── docker-compose.yml # Local development stack
+└── requirements.txt   # Python dependencies
 ```
 
-## Prerequisites
-
-- Python 3.11
-- [Poetry](https://python-poetry.org/docs/#installation)
-- [pre-commit](https://pre-commit.com/#installation)
-
-## Getting started
-
-1. **Install backend dependencies**
-
-   ```bash
-   cd backend
-   poetry install
-   ```
-
-2. **Install pre-commit hooks** (run from the repository root):
-
-   ```bash
-   pre-commit install
-   ```
-
-3. **Run the FastAPI app locally**
-
-   ```bash
-   cd backend
-   poetry run uvicorn app.main:app --reload
-   ```
-
-   The application will be available at <http://127.0.0.1:8000>. Visit
-   `/docs` for the interactive OpenAPI documentation.
-
-4. **Execute the test suite**
-
-   ```bash
-   cd backend
-   poetry run pytest
-   ```
-
-## Tooling
-
-- **Formatting**: [Black](https://black.readthedocs.io/) (enforced via pre-commit)
-- **Linting**: [Ruff](https://docs.astral.sh/ruff/)
-- **Static typing**: [mypy](http://mypy-lang.org/)
-
-All tools are wired into pre-commit; they will run automatically on commit. You
-can also run them manually:
-
-```bash
-cd backend
-poetry run black --check app
-poetry run ruff check app
-poetry run mypy app
-```
-
-## Documentation
-
-The `docs/` directory is the home for project documentation content. Start by
-adding Markdown files or adopt your documentation generator of choice.
-
-## Continuous integration
-
-Placeholder GitHub Actions workflows are located under `.github/workflows/`.
-They install backend dependencies and run linting and tests to validate
-contributions. Update them as the project evolves.
-=======
-# Deployment Service
-
-A minimal FastAPI application demonstrating containerized deployment workflows, database migrations, and automated CI/CD.
-
-## Features
-
-- FastAPI application with health and item endpoints
-- SQLAlchemy models with Alembic migrations
-- Docker and Docker Compose definitions for development and production
-- Optional Kubernetes manifests
-- GitHub Actions pipeline covering build, test, and deploy stages
-- Pre-generated OpenAPI specification (`docs/openapi.json`)
-
-## Security hardening
-
-- Automatic HTTPS redirection via FastAPI middleware
-- Vault-integrated secret retrieval with environment fallbacks for local use
-- Fixed-window rate limiting with quota response headers and audit trails
-- Structured JSON audit logs persisted to a rotating file handler
-- Input sanitisation applied to payloads and query parameters using `bleach`
-- Transparent Fernet encryption of persisted item descriptions
-
-Refer to [`docs/SECURITY.md`](docs/SECURITY.md) for detailed threat modelling and
-configuration guidance for these controls.
+Only the root-level `app` package contains backend source code. All tooling and configuration reference this single location to avoid duplicate modules.
 
 ## Prerequisites
 
 - Python 3.11+
-- Docker with Docker Compose v2
+- Docker with Docker Compose v2 (optional, for containerised runs)
+- [pre-commit](https://pre-commit.com/#installation) for local quality checks
 
-## Local Development
+## Backend development
 
-1. Create and activate a virtual environment (optional):
+1. (Optional) Create a virtual environment:
    ```bash
    python -m venv .venv
    source .venv/bin/activate
    ```
+
 2. Install dependencies:
    ```bash
    pip install -r requirements.txt
    ```
-3. Start the development stack:
+
+3. Run the FastAPI application:
    ```bash
-   docker compose up --build
+   uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
    ```
-   The API will be served from http://localhost:8000.
-4. Run the test suite:
+   Visit <http://127.0.0.1:8000/docs> for the interactive OpenAPI UI.
+
+4. Apply database migrations when needed:
    ```bash
-   pytest
+   alembic upgrade head
    ```
 
-## Production Docker Compose
+5. (Optional) Start Celery workers:
+   ```bash
+   celery -A app.celery_app.celery_app worker --loglevel=info
+   ```
 
-Use the optimized production configuration:
+## Testing
+
+Run the backend tests from the repository root:
 ```bash
-docker compose -f docker-compose.prod.yaml up --build
+pytest
 ```
-The application container automatically runs database migrations before starting the API server.
 
-## Database Migrations
+## Linting and static analysis
 
-Alembic is configured to use the `DATABASE_URL` environment variable.
+The project standardises on:
+- [Black](https://black.readthedocs.io/) for formatting
+- [Ruff](https://docs.astral.sh/ruff/) for linting and import sorting
+- [mypy](http://mypy-lang.org/) for static typing
 
-- Generate a new migration:
-  ```bash
-  alembic revision -m "describe change"
-  ```
-- Apply migrations:
-  ```bash
-  alembic upgrade head
-  ```
+Install pre-commit hooks to run the suite automatically:
+```bash
+pre-commit install
+```
+You can trigger individual tools manually:
+```bash
+ruff check app tests alembic
+black app tests alembic
+mypy app
+```
 
-## API Documentation
+## Docker Compose
 
-Generate the OpenAPI document with:
+Use the provided development composition to run API and database containers:
+```bash
+docker compose up --build
+```
+The API is exposed on <http://localhost:8000>. The production variant lives in `docker-compose.prod.yaml` and the Dockerfile runs Alembic migrations automatically on start-up.
+
+## API documentation
+
+The OpenAPI document is bundled at `docs/openapi.json`. Regenerate it after schema changes:
 ```bash
 python docs/generate_openapi.py
 ```
-The generated schema is stored at `docs/openapi.json`.
 
 ## CI/CD
 
-The GitHub Actions workflow (`.github/workflows/ci.yml`) performs:
-1. **Build** – dependency installation and bytecode compilation.
-2. **Test** – unit tests against PostgreSQL.
-3. **Deploy** – Docker image build and artifact publication (main branch only).
-
-## Deployment Guide
-
-Detailed deployment instructions are available in `docs/DEPLOYMENT.md`.
-main
+GitHub Actions workflows in `.github/workflows/` install dependencies with `pip`, enforce the linting suite, and run `pytest`. They use the single `app` package as the backend source of truth.
