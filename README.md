@@ -21,7 +21,8 @@ requirements guarantee identical environments locally, in Docker, and in CI.
 ├── Dockerfile            Production image definition
 ├── docker-compose.yml    Local development stack
 ├── pyproject.toml        Shared tooling configuration (formatting, lint, mypy, pytest)
-└── requirements.txt      Application + development dependencies installed everywhere
+├── requirements.txt      Application dependencies shared across all environments
+└── requirements-dev.txt  Developer tooling pinned for linting, typing, and hooks
 ```
 
 The backend code must live inside `app/`. Avoid creating additional top-level
@@ -43,7 +44,7 @@ Prerequisites:
 
 2. Install application and tooling dependencies:
    ```bash
-   pip install -r requirements.txt
+   pip install -r requirements.txt -r requirements-dev.txt
    ```
 
 3. Register the git hooks so formatting and linting run automatically:
