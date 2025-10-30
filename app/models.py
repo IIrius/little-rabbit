@@ -3,13 +3,14 @@ from __future__ import annotations
 
 from datetime import datetime
 from enum import Enum, StrEnum
-from typing import Optional
+from typing import Any, Dict, Optional
 
 from sqlalchemy import (
     Boolean,
     DateTime,
     Float,
     ForeignKey,
+    JSON,
     String,
     Text,
     UniqueConstraint,
@@ -287,6 +288,65 @@ class WorkspaceSource(Base):
     )
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False, server_default=func.now()
+    )
+    parser_config: Mapped["WorkspaceParserConfig" | None] = relationship(
+        "WorkspaceParserConfig",
+        back_populates="source",
+        cascade="all, delete-orphan",
+        uselist=False,
+    )
+
+
+class WorkspaceParserConfig(Base):
+    """Parser configuration associated with a workspace source."""
+
+    __tablename__ = "workspace_parser_configs"
+    __table_args__ = (
+        UniqueConstraint("source_id", name="uq_workspace_parser_source"),
+    )
+
+    id: Mapped[int] = mapped_column(primary_key=True, index=True)
+    source_id: Mapped[int] = mapped_column(
+        ForeignKey("workspace_sources.id", ondelete="CASCADE"),
+        nullable=False,
+        unique=True,
+        index=True,
+    )
+    parser_name: Mapped[str] = mapped_column(String(120), nullable=False)
+    options: Mapped[Dict[str, Any]] = mapped_column(
+        JSON,
+        nullable=False,
+        default=dict,
+    )
+    user_agents: Mapped[list[str]] = mapped_column(
+        JSON,
+        nullable=False,
+        default=list,
+    )
+    cookies: Mapped[Dict[str, str]] = mapped_column(
+        JSON,
+        nullable=False,
+        default=dict,
+    )
+    use_playwright: Mapped[bool] = mapped_column(
+        Boolean,
+        nullable=False,
+        default=False,
+        server_default=expression.false(),
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now()
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        nullable=False,
+        server_default=func.now(),
+        onupdate=func.now(),
+    )
+
+    source: Mapped["WorkspaceSource"] = relationship(
+        "WorkspaceSource",
+        back_populates="parser_config",
     )
 
 

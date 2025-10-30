@@ -14,6 +14,7 @@ from app import models  # noqa: F401
 from app.config import get_settings
 from app.database import Base, get_session
 from app.main import app
+from app.parser.playwright import set_playwright_provider
 
 os.environ.setdefault("ENCRYPTION_KEY", "BYPHtIuWGHNirMRHkRkNvztNFVQVw1Gc7YCOUMIqFZs=")
 os.environ.setdefault("RATE_LIMIT_MAX_REQUESTS", "100")
@@ -50,14 +51,24 @@ def setup_database() -> Generator[None, None, None]:
     app.dependency_overrides[get_session] = _override_get_session
 
     pipeline_tasks_module = None
-    original_session_factory = None
+    original_pipeline_session_factory = None
+    parser_tasks_module = None
+    original_parser_session_factory = None
     try:
         from app.pipeline import tasks as pipeline_tasks_module  # noqa: E402
     except ImportError:
         pipeline_tasks_module = None
     else:
-        original_session_factory = pipeline_tasks_module.SessionLocal
+        original_pipeline_session_factory = pipeline_tasks_module.SessionLocal
         pipeline_tasks_module.SessionLocal = TestingSessionLocal
+
+    try:
+        from app.parser import tasks as parser_tasks_module  # noqa: E402
+    except ImportError:
+        parser_tasks_module = None
+    else:
+        original_parser_session_factory = parser_tasks_module.SessionLocal
+        parser_tasks_module.SessionLocal = TestingSessionLocal
 
     from app.pipeline.config import load_workspace_configs  # noqa: E402
     from app.services import telegram as telegram_service  # noqa: E402
@@ -65,12 +76,14 @@ def setup_database() -> Generator[None, None, None]:
     load_workspace_configs.cache_clear()
     get_settings.cache_clear()
     telegram_service.set_telegram_publisher(None)
+    set_playwright_provider(None)
 
     yield
 
     telegram_service.set_telegram_publisher(None)
     load_workspace_configs.cache_clear()
     get_settings.cache_clear()
+    set_playwright_provider(None)
 
     session = TestingSessionLocal()
     session.close()
@@ -79,8 +92,10 @@ def setup_database() -> Generator[None, None, None]:
     if rate_limiter is not None:
         rate_limiter.reset()
     app.dependency_overrides.pop(get_session, None)
-    if pipeline_tasks_module is not None and original_session_factory is not None:
-        pipeline_tasks_module.SessionLocal = original_session_factory
+    if pipeline_tasks_module is not None and original_pipeline_session_factory is not None:
+        pipeline_tasks_module.SessionLocal = original_pipeline_session_factory
+    if parser_tasks_module is not None and original_parser_session_factory is not None:
+        parser_tasks_module.SessionLocal = original_parser_session_factory
 
 
 @pytest.fixture()

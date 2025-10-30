@@ -141,5 +141,7 @@ python docs/generate_openapi.py
   reasoning, CI parity commands, and best practices.
 - [Tooling analysis (Ticket 1)](docs/development/tooling.md#tooling-analysis-ticket-1) —
   historical context on the unified setup and how to keep it stable.
+- [Parser framework](docs/development/parser-framework.md) — extending parsers,
+  configuring anti-detect options, and orchestrating Celery runs.
 - [Security posture and mitigations](docs/SECURITY.md)
 - [Deployment reference](docs/DEPLOYMENT.md)
