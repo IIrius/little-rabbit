@@ -20,7 +20,7 @@ class RawNewsItem(BaseModel):
     body: str
     author: str | None = None
 
-    @validator("title", "body", pre=True)
+    @validator("title", "body", pre=True, allow_reuse=True)
     def _ensure_text(cls, value: object) -> str:
         if value is None:
             raise ValueError("news payload fields cannot be None")
@@ -38,14 +38,14 @@ class WorkspacePipelineConfig(BaseModel):
     sources: List[RawNewsItem] = Field(default_factory=list)
     tags: List[str] = Field(default_factory=list)
 
-    @validator("workspace")
+    @validator("workspace", allow_reuse=True)
     def _workspace_not_blank(cls, value: str) -> str:
         value = value.strip()
         if not value:
             raise ValueError("workspace identifier cannot be blank")
         return value
 
-    @validator("tags", pre=True)
+    @validator("tags", pre=True, allow_reuse=True)
     def _ensure_tags(cls, value: object) -> List[str]:
         if value is None:
             return []

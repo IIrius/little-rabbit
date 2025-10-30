@@ -11,5 +11,6 @@ uvicorn[standard]==0.23.2
 pydantic[email]==1.10.12
 prometheus-client==0.17.1
 pytest==7.4.3
-httpx==0.24.1
+httpx==0.25.2
+python-telegram-bot==20.6
 PyJWT==2.8.0
