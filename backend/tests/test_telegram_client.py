@@ -4,8 +4,8 @@ from types import SimpleNamespace
 
 import pytest
 
-from app.integrations.telegram import client as telegram_client
-from app.integrations.telegram.client import TelegramError
+from backend_app.integrations.telegram import client as telegram_client
+from backend_app.integrations.telegram.client import TelegramError
 
 
 @pytest.fixture

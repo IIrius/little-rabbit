@@ -4,8 +4,8 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, status
 
-from app.dependencies import get_telegram_client
-from app.integrations.telegram import (
+from backend_app.dependencies import get_telegram_client
+from backend_app.integrations.telegram import (
     TelegramChannelBindingError,
     TelegramClient,
     TelegramClientError,
@@ -13,7 +13,7 @@ from app.integrations.telegram import (
     TelegramPermissionError,
     TelegramWorkspaceNotRegisteredError,
 )
-from app.schemas.telegram import (
+from backend_app.schemas.telegram import (
     BindChannelRequest,
     RegisterBotRequest,
     WorkspaceTelegramConfigResponse,

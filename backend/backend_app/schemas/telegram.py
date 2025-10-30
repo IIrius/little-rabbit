@@ -4,7 +4,10 @@ from typing import List, Optional, cast
 
 from pydantic import BaseModel, Field, HttpUrl, validator
 
-from app.integrations.telegram.models import DeliveryStrategy, WorkspaceTelegramConfig
+from backend_app.integrations.telegram.models import (
+    DeliveryStrategy,
+    WorkspaceTelegramConfig,
+)
 
 
 class RegisterBotRequest(BaseModel):

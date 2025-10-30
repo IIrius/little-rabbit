@@ -2,7 +2,7 @@ from typing import Final
 
 from fastapi import FastAPI
 
-from app.api.telegram import router as telegram_router
+from backend_app.api.telegram import router as telegram_router
 
 APP_TITLE: Final[str] = "Backend API"
 
