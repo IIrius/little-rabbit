@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import json
 
+from prometheus_client import generate_latest
 from sqlalchemy import select
 
 from app.config import get_settings
@@ -17,7 +18,6 @@ from app.observability.monitoring import DASHBOARD_REGISTRY
 from app.pipeline.config import load_workspace_configs
 from app.pipeline.runner import run_workspace_pipeline_sync
 from app.services import telegram as telegram_service
-from prometheus_client import generate_latest
 
 
 def test_pipeline_publishes_sample_news(db_session) -> None:
@@ -67,13 +67,17 @@ def test_pipeline_telegram_publishing_and_moderation(
                     "sources": [
                         {
                             "title": "Safe launch update",
-                            "body": "New features shipping soon and suitable for broadcast.",
+                            "body": (
+                                "New features shipping soon and "
+                                "suitable for broadcast."
+                            ),
                             "author": "automation-bot",
                         },
                         {
                             "title": "Policy breach reported",
                             "body": (
-                                "Unsafe content triggers a policy breach and requires human review. "
+                                "Unsafe content triggers a policy breach "
+                                "and requires human review. "
                                 "Mark for moderation."
                             ),
                             "author": "watchdog",

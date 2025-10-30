@@ -1,31 +1,24 @@
 """Test fixtures for the application."""
 from __future__ import annotations
 
-from collections.abc import Generator
-from pathlib import Path
 import os
-import sys
+from collections.abc import Generator
 
 import pytest
 from fastapi.testclient import TestClient
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
+from sqlalchemy.pool import StaticPool
+
+from app import models  # noqa: F401 - ensure models are loaded
+from app.config import get_settings
+from app.database import Base, get_session
+from app.main import app
 
 os.environ.setdefault("ENCRYPTION_KEY", "BYPHtIuWGHNirMRHkRkNvztNFVQVw1Gc7YCOUMIqFZs=")
 os.environ.setdefault("RATE_LIMIT_MAX_REQUESTS", "100")
 os.environ.setdefault("RATE_LIMIT_WINDOW_SECONDS", "60")
 os.environ.setdefault("AUTH_SECRET_KEY", "test-secret-key")
-
-PROJECT_ROOT = Path(__file__).resolve().parents[1]
-if str(PROJECT_ROOT) not in sys.path:
-    sys.path.insert(0, str(PROJECT_ROOT))
-
-from app.config import get_settings
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
-from sqlalchemy.pool import StaticPool
-
-from app.database import Base, get_session
-from app.main import app
-from app import models  # noqa: F401 - ensure models are loaded
 
 SQLALCHEMY_TEST_URL = "sqlite+pysqlite:///:memory:"
 

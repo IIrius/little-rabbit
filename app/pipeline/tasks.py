@@ -384,7 +384,7 @@ def run_workspace_pipeline(self, workspace: str) -> Dict[str, Any]:
             exc=exc,
             countdown=config.retry_delay_seconds,
             max_retries=config.retry_attempts,
-        )
+        ) from exc
 
 
 __all__ = [
