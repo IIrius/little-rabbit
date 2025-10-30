@@ -4,17 +4,11 @@ from typing import TYPE_CHECKING, Any, Optional, Set
 
 if TYPE_CHECKING:  # pragma: no cover - type checking only
     from telegram import Bot as TelegramBot  # type: ignore[attr-defined]
-    from telegram.error import (  # type: ignore[attr-defined]
-        TelegramError as _ImportedTelegramError,
-    )
-    TelegramError = _ImportedTelegramError
+    from telegram.error import TelegramError  # type: ignore[attr-defined]
 else:  # pragma: no cover - optional dependency
     try:
         from telegram import Bot as TelegramBot  # type: ignore[attr-defined]
-        from telegram.error import (  # type: ignore[attr-defined]
-            TelegramError as _ImportedTelegramError,
-        )
-        TelegramError = _ImportedTelegramError
+        from telegram.error import TelegramError  # type: ignore[attr-defined]
     except ModuleNotFoundError:  # pragma: no cover - exercised in unit tests via patching
         TelegramBot = None  # type: ignore[assignment]
         TelegramError = Exception  # type: ignore[assignment]
