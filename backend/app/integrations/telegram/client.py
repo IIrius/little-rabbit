@@ -4,12 +4,9 @@ from typing import Any, Optional, Set
 
 try:  # pragma: no cover - dependency resolution is environment specific
     from telegram import Bot as _TelegramBot  # type: ignore[attr-defined]
-except ModuleNotFoundError:  # pragma: no cover - exercised in unit tests via patching
-    _TelegramBot = None  # type: ignore[assignment]
-
-try:  # pragma: no cover - dependency resolution is environment specific
     from telegram.error import TelegramError as _TelegramError  # type: ignore[attr-defined]
 except ModuleNotFoundError:  # pragma: no cover - exercised in unit tests via patching
+    _TelegramBot = None  # type: ignore[assignment]
     _TelegramError = Exception  # type: ignore[assignment]
 
 from .exceptions import (
