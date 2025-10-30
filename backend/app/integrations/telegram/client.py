@@ -2,16 +2,6 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any, Optional, Set
 
-from .exceptions import (
-    TelegramChannelBindingError,
-    TelegramClientError,
-    TelegramConfigurationError,
-    TelegramPermissionError,
-    TelegramWorkspaceNotRegisteredError,
-)
-from .models import DeliveryStrategy, WorkspaceTelegramConfig
-from .storage import WorkspaceTelegramStore
-
 if TYPE_CHECKING:  # pragma: no cover - type checking only
     from telegram import Bot as TelegramBot  # type: ignore[attr-defined]
     from telegram.error import TelegramError  # type: ignore[attr-defined]
@@ -22,6 +12,16 @@ else:  # pragma: no cover - optional dependency
     except ModuleNotFoundError:  # pragma: no cover - exercised in unit tests via patching
         TelegramBot = None  # type: ignore[assignment]
         TelegramError = Exception  # type: ignore[assignment]
+
+from .exceptions import (
+    TelegramChannelBindingError,
+    TelegramClientError,
+    TelegramConfigurationError,
+    TelegramPermissionError,
+    TelegramWorkspaceNotRegisteredError,
+)
+from .models import DeliveryStrategy, WorkspaceTelegramConfig
+from .storage import WorkspaceTelegramStore
 
 Bot = TelegramBot  # Backwards compatibility alias used by tests
 

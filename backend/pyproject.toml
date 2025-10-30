@@ -4,7 +4,7 @@ version = "0.1.0"
 description = "FastAPI backend service for the monorepo skeleton."
 authors = ["Monorepo Maintainers <dev@company.com>"]
 readme = "README.md"
-packages = [{ include = "backend_app", from = "backend" }]
+packages = [{ include = "app" }]
 
 [tool.poetry.dependencies]
 python = "^3.11"
@@ -46,5 +46,5 @@ ignore_missing_imports = true
 warn_unused_configs = true
 
 [tool.pytest.ini_options]
-pythonpath = ["backend"]
+pythonpath = ["app"]
 testpaths = ["tests"]

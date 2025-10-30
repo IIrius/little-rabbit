@@ -4,7 +4,7 @@ from typing import List, Optional, cast
 
 from pydantic import BaseModel, Field, HttpUrl, validator
 
-from backend_app.integrations.telegram.models import (
+from app.integrations.telegram.models import (
     DeliveryStrategy,
     WorkspaceTelegramConfig,
 )
