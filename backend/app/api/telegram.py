@@ -10,7 +10,7 @@ from app.schemas.telegram import (
     RegisterBotRequest,
     WorkspaceTelegramConfigResponse,
 )
-from app.telegram import (
+from app.integrations.telegram import (
     TelegramChannelBindingError,
     TelegramClient,
     TelegramClientError,

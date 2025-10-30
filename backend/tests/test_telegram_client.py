@@ -31,7 +31,7 @@ def fake_bot(monkeypatch: pytest.MonkeyPatch):
             return SimpleNamespace(id=int(chat_id))
 
     DummyBot.instances = instances
-    monkeypatch.setattr("app.telegram.client.Bot", DummyBot)
+    monkeypatch.setattr("app.integrations.telegram.client.Bot", DummyBot)
     yield DummyBot
     instances.clear()
 

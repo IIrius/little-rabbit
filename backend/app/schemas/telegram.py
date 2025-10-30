@@ -1,10 +1,10 @@
 from __future__ import annotations
 
-from typing import List, Optional
+from typing import List, Optional, cast
 
 from pydantic import BaseModel, Field, HttpUrl, model_validator
 
-from app.telegram.models import DeliveryStrategy, WorkspaceTelegramConfig
+from app.integrations.telegram.models import DeliveryStrategy, WorkspaceTelegramConfig
 
 
 class RegisterBotRequest(BaseModel):
@@ -38,7 +38,7 @@ class WorkspaceTelegramConfigResponse(BaseModel):
         return cls(
             workspace_id=config.workspace_id,
             strategy=config.strategy,
-            webhook_url=config.webhook_url,
+            webhook_url=cast(Optional[HttpUrl], config.webhook_url),
             allowed_channel_ids=sorted(config.allowed_channel_ids),
             bound_channel_id=config.bound_channel_id,
         )
