@@ -67,7 +67,16 @@ def setup_database() -> Generator[None, None, None]:
         original_session_factory = pipeline_tasks_module.SessionLocal
         pipeline_tasks_module.SessionLocal = TestingSessionLocal
 
+    from app.pipeline.config import load_workspace_configs
+    from app.services import telegram as telegram_service
+
+    load_workspace_configs.cache_clear()
+    telegram_service.set_telegram_publisher(None)
+
     yield
+
+    telegram_service.set_telegram_publisher(None)
+    load_workspace_configs.cache_clear()
 
     session = TestingSessionLocal()
     session.close()

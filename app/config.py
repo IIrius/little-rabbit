@@ -29,6 +29,11 @@ class Settings(BaseSettings):
     celery_broker_url: str = Field("memory://", env="CELERY_BROKER_URL")
     celery_result_backend: str = Field("rpc://", env="CELERY_RESULT_BACKEND")
     pipeline_config_json: str | None = Field(None, env="WORKSPACE_PIPELINES_JSON")
+    telegram_bot_token: str | None = Field(None, env="TELEGRAM_BOT_TOKEN")
+    telegram_api_base_url: str = Field(
+        "https://api.telegram.org", env="TELEGRAM_API_BASE_URL"
+    )
+    telegram_timeout_seconds: float = Field(5.0, env="TELEGRAM_TIMEOUT_SECONDS")
     auth_secret_key: str = Field("change-me", env="AUTH_SECRET_KEY")
     access_token_expire_minutes: int = Field(15, env="ACCESS_TOKEN_EXPIRE_MINUTES")
     refresh_token_expire_minutes: int = Field(60 * 24 * 7, env="REFRESH_TOKEN_EXPIRE_MINUTES")
